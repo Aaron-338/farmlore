@@ -314,7 +314,7 @@ class HybridEngine:
         if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("pest_identification", params)):
             # If Prolog found data and Ollama is not strictly needed for this query type
             logging.info("Sufficient data found in Prolog for pest identification. Formatting response.")
-            response_text = "\\n".join(prolog_info_parts)
+            response_text = "\n".join(prolog_info_parts)
             return {"response": response_text, "source": "prolog"}
 
         # If Prolog data is not enough, or Ollama is indicated, or it's the primary engine
@@ -323,7 +323,7 @@ class HybridEngine:
             # Prepare context for Ollama, potentially including Prolog findings
             ollama_context = ""
             if prolog_data_found:
-                ollama_context = "Based on our knowledge base:\\n" + "\\n".join(prolog_info_parts) + "\\n\\nUser is asking: " + user_query
+                ollama_context = "Based on our knowledge base:\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking: " + user_query
             else:
                 ollama_context = user_query
 
@@ -344,7 +344,7 @@ class HybridEngine:
                 if prolog_data_found and not llm_response.startswith("Based on our knowledge base"):
                     # Prepend prolog context if LLM didn't seem to use it and we want to ensure it's there
                     # This is a simple way, could be more sophisticated
-                    # final_response = "From our knowledge base:\\n" + "\\n".join(prolog_info_parts) + "\\n\\nAdditionally, the AI model suggests:\\n" + llm_response
+                    # final_response = "From our knowledge base:\n" + "\n".join(prolog_info_parts) + "\n\nAdditionally, the AI model suggests:\n" + llm_response
                     pass # Decided to let LLM response stand, as prompt already included it.
 
                 return {"response": final_response, "source": "ollama"}
@@ -353,7 +353,7 @@ class HybridEngine:
         
         # Fallback if Prolog didn't yield enough and Ollama failed or is disabled
         if prolog_data_found: # At least return what prolog found
-             return {"response": "\\n".join(prolog_info_parts), "source": "prolog_partial"}
+             return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
         logging.info("Using mock response for pest identification as other methods failed.")
         return self._mock_pest_identification(params) # Fallback to mock
@@ -406,14 +406,14 @@ class HybridEngine:
         # Decision logic similar to _process_pest_identification
         if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("pest_management", params)):
             logging.info("Sufficient data found in Prolog for control methods. Formatting response.")
-            response_text = "\\n".join(prolog_info_parts)
+            response_text = "\n".join(prolog_info_parts)
             return {"response": response_text, "source": "prolog"}
 
         if self.use_ollama and self.ollama_handler:
             logging.info("Using Ollama for control methods.")
             ollama_context = user_query
             if prolog_data_found:
-                ollama_context = "Based on our knowledge base for " + pest_name + ":\\n" + "\\n".join(prolog_info_parts) + "\\n\\nUser is asking for control methods: " + user_query
+                ollama_context = "Based on our knowledge base for " + pest_name + ":\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking for control methods: " + user_query
             
             prompt_content = format_prompt(
                 PromptType.PEST_MANAGEMENT,
@@ -433,7 +433,7 @@ class HybridEngine:
                 logging.warning("Ollama returned empty response for control methods.")
         
         if prolog_data_found:
-            return {"response": "\\n".join(prolog_info_parts), "source": "prolog_partial"}
+            return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
         logging.info("Using mock response for control methods as other methods failed.")
         return self._mock_control_methods(params)
@@ -449,51 +449,42 @@ class HybridEngine:
 
         if crop_name:
             logging.info(f"Attempting to get crop info for '{crop_name}' from PrologService.")
-            # Use the connector directly for frame-based queries if service doesn't have specific method
-            # The PrologConnector.query returns a list of dicts, or empty list on failure.
-            # Each dict represents a solution. If query is `crop(name:crop_name, X)`, X should be the attributes.
-            crop_details_results = self.prolog_service.connector.query(f"crop(name:{crop_name.lower()}, X)")
+            # Use the new PrologService method
+            crop_details = self.prolog_service.get_crop_details(crop_name)
             
-            if crop_details_results and isinstance(crop_details_results[0].get('X'), list):
-                crop_attributes = crop_details_results[0]['X']
-                # The attributes are expected to be like ['pests:[pest1, pest2]', 'diseases:[d1]', ...]
-                # We need to parse this to find the 'pests' list.
-                for attr in crop_attributes:
-                    if isinstance(attr, str) and attr.startswith("pests:["):
-                        # Basic parsing, assuming format pests:[pestA,pestB]
-                        pests_str = attr[len("pests:["):-1] # Remove prefix and suffix ]
-                        if pests_str:
-                            pest_list_for_ollama = [p.strip() for p in pests_str.split(',')]
-                            if pest_list_for_ollama:
-                                prolog_data_found = True
-                                prolog_info_parts.append(f"Pests known to affect {crop_name}:")
-                                prolog_info_parts.extend([f"- {p}" for p in pest_list_for_ollama])
-                        break
+            # Check if details were found and if there's a pests list
+            if crop_details and not crop_details.get('error') and isinstance(crop_details.get('pests'), list):
+                pest_list_for_ollama = crop_details['pests']
+                if pest_list_for_ollama:
+                    prolog_data_found = True
+                    prolog_info_parts.append(f"Pests known to affect {crop_name}:")
+                    prolog_info_parts.extend([f"- {p}" for p in pest_list_for_ollama])
+            
             if not prolog_data_found:
-                 logging.info(f"No specific pest list found in Prolog for crop '{crop_name}'. Query was: crop(name:{crop_name.lower()}, X)")
+                 # Log if details were found but no pests, or if details weren't found
+                 if crop_details and not crop_details.get('error'):
+                      logging.info(f"Prolog found details for crop '{crop_name}' but no 'pests' list.")
+                 else:
+                      logging.info(f"No specific pest list found in Prolog for crop '{crop_name}'. get_crop_details failed.")
 
         else:
             logging.info("No specific crop name provided for Prolog lookup in crop pests.")
 
         if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("crop_pests", params)):
             logging.info("Sufficient data found in Prolog for crop pests. Formatting response.")
-            response_text = "\\n".join(prolog_info_parts)
+            response_text = "\n".join(prolog_info_parts)
             return {"response": response_text, "source": "prolog"}
 
         if self.use_ollama and self.ollama_handler:
             logging.info("Using Ollama for crop pests.")
             ollama_context = user_query
             if prolog_data_found:
-                ollama_context = f"According to our knowledge base, {crop_name} can be affected by: {', '.join(pest_list_for_ollama)}.\\n\\nUser is asking: {user_query}"
+                ollama_context = f"According to our knowledge base, {crop_name} can be affected by: {', '.join(pest_list_for_ollama)}.\n\nUser is asking: {user_query}"
             
-            # PromptType.CROP_PESTS doesn't exist, so we use a general or pest_management prompt.
-            # Let's assume a general approach or adapt a prompt type if available.
-            # For now, we use GENERAL and pass the context directly.
             prompt_content = format_prompt(
-                PromptType.GENERAL, # Or a more specific one like PEST_IDENTIFICATION if appropriate
+                PromptType.GENERAL, 
                 query=ollama_context,
                 crop=crop_name,
-                # pests_list=pest_list_for_ollama # Pass to template if it supports it
             )
             
             llm_response = self.ollama_handler.generate_response(
@@ -507,7 +498,7 @@ class HybridEngine:
                 logging.warning("Ollama returned empty response for crop pests.")
         
         if prolog_data_found:
-            return {"response": "\\n".join(prolog_info_parts), "source": "prolog_partial"}
+            return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
         logging.info("Using mock response for crop pests as other methods failed.")
         return self._mock_crop_pests(params)
@@ -515,39 +506,31 @@ class HybridEngine:
     def _process_indigenous_knowledge(self, params: Dict) -> Dict[str, Any]:
         """Process queries about indigenous knowledge."""
         user_query = params.get("query", "")
-        # Try to find a specific practice name if provided by entity extraction, or use the whole query
-        practice_name = params.get("practice") # Assuming 'practice' could be an extracted entity
+        practice_name = params.get("practice")
 
         prolog_info_parts = []
         prolog_data_found = False
 
         if practice_name:
             logging.info(f"Attempting to get indigenous practice details for '{practice_name}' from PrologService.")
-            # The PrologService.search_prolog_kb also has a way to get practice_info by name match
-            # Or we can query directly via connector if a more specific service method is not available
-            # For frame `practice(name:PName, X)`, X has all attributes.
-            practice_details_results = self.prolog_service.connector.query(f"practice(name:{practice_name.lower()}, X)")
-            if practice_details_results and isinstance(practice_details_results[0].get('X'), list):
-                attributes = practice_details_results[0]['X']
+            # Use the new PrologService method
+            practice_details = self.prolog_service.get_practice_details(practice_name)
+            
+            if practice_details and not practice_details.get('error'):
                 prolog_data_found = True
                 prolog_info_parts.append(f"Details for indigenous practice '{practice_name}':")
-                # Convert attribute list (e.g., ['type:organic_pesticide', 'description:Details here']) to a dict
-                attrs_dict = {}
-                for attr_str in attributes:
-                    if isinstance(attr_str, str) and ':' in attr_str:
-                        key, val = attr_str.split(':', 1)
-                        attrs_dict[key.strip()] = val.strip()
-                
-                if attrs_dict.get('description'):
-                    prolog_info_parts.append(f"  Description: {attrs_dict['description']}")
-                if attrs_dict.get('type'):
-                    prolog_info_parts.append(f"  Type: {attrs_dict['type']}")
-                if attrs_dict.get('controls'): # This would be a string like '[aphids,whiteflies]'
-                    prolog_info_parts.append(f"  Controls: {attrs_dict['controls'].strip('[]')}") # Basic display
-                if attrs_dict.get('resolves'):
-                    prolog_info_parts.append(f"  Resolves: {attrs_dict['resolves'].strip('[]')}")
-                if attrs_dict.get('cultural_context'):
-                    prolog_info_parts.append(f"  Cultural Context: {attrs_dict['cultural_context'].strip('[]')}")
+                # Use the returned dictionary directly
+                if practice_details.get('description'):
+                    prolog_info_parts.append(f"  Description: {practice_details['description']}")
+                if practice_details.get('type'):
+                    prolog_info_parts.append(f"  Type: {practice_details['type']}")
+                # Access parsed lists directly if parser handled them
+                if isinstance(practice_details.get('controls'), list):
+                    prolog_info_parts.append(f"  Controls: {', '.join(practice_details['controls'])}") 
+                if isinstance(practice_details.get('resolves'), list):
+                    prolog_info_parts.append(f"  Resolves: {', '.join(practice_details['resolves'])}")
+                if isinstance(practice_details.get('cultural_context'), list):
+                    prolog_info_parts.append(f"  Cultural Context: {', '.join(practice_details['cultural_context'])}")
                 # Add other relevant attributes as needed
             else:
                 logging.info(f"No specific details found in Prolog for practice '{practice_name}'.")
@@ -558,30 +541,30 @@ class HybridEngine:
             if prolog_search_result and not prolog_search_result.get('generic_response'):
                 prolog_data_found = True
                 if prolog_search_result.get('practice_found'):
-                    p_info = prolog_search_result['practice_info']
+                    p_info = prolog_search_result['practice_info'] # practice_info is already a dict
                     prolog_info_parts.append(f"Found information related to indigenous practice '{p_info.get('name')}':")
                     if p_info.get('description'): prolog_info_parts.append(f"  Description: {p_info['description']}")
                     if p_info.get('type'): prolog_info_parts.append(f"  Type: {p_info['type']}")
-                    # ... (add more details from p_info as needed)
-                elif prolog_search_result.get('pest_found'): # Less likely for IK query but possible
+                    if isinstance(p_info.get('controls'), list): prolog_info_parts.append(f"  Controls: {', '.join(p_info['controls'])}") 
+                elif prolog_search_result.get('pest_found'):
                      prolog_info_parts.append("Found pest-related information that might involve indigenous practices. Please ask specifically about a practice.")
 
         if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("indigenous_knowledge", params)):
             logging.info("Sufficient data found in Prolog for indigenous knowledge. Formatting response.")
-            response_text = "\\n".join(prolog_info_parts)
+            response_text = "\n".join(prolog_info_parts)
             return {"response": response_text, "source": "prolog"}
 
         if self.use_ollama and self.ollama_handler:
             logging.info("Using Ollama for indigenous knowledge.")
             ollama_context = user_query
             if prolog_data_found:
-                ollama_context = "Our knowledge base contains the following on this topic:\\n" + "\\n".join(prolog_info_parts) + "\\n\\nUser is asking: " + user_query
+                ollama_context = "Our knowledge base contains the following on this topic:\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking: " + user_query
             
             prompt_content = format_prompt(
                 PromptType.INDIGENOUS_KNOWLEDGE,
                 query=ollama_context,
-                practice_name=params.get('practice_name', practice_name), # Pass to template
-                purpose=params.get('purpose', '') # Pass to template
+                practice_name=params.get('practice_name', practice_name), 
+                purpose=params.get('purpose', '')
             )
             
             llm_response = self.ollama_handler.generate_response(
@@ -595,7 +578,7 @@ class HybridEngine:
                 logging.warning("Ollama returned empty response for indigenous knowledge.")
         
         if prolog_data_found:
-            return {"response": "\\n".join(prolog_info_parts), "source": "prolog_partial"}
+            return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
         logging.info("Using mock response for indigenous knowledge as other methods failed.")
         return self._mock_indigenous_knowledge(params)
@@ -643,7 +626,7 @@ class HybridEngine:
         # Decision logic
         if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("general_query", params)):
             logging.info("Sufficient specific data found in Prolog via general search. Formatting response.")
-            response_text = "\\n".join(prolog_info_parts)
+            response_text = "\n".join(prolog_info_parts)
             return {"response": response_text, "source": "prolog"}
 
         # If Prolog data is not enough, or Ollama is indicated, or it's the primary engine for general queries
@@ -651,7 +634,7 @@ class HybridEngine:
             logging.info("Using Ollama for general query.")
             ollama_context = user_query
             if prolog_data_found: # Prepend any specific findings from KB search
-                ollama_context = "Based on our knowledge base:\\n" + "\\n".join(prolog_info_parts) + "\\n\\nUser is asking: " + user_query
+                ollama_context = "Based on our knowledge base:\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking: " + user_query
             
             prompt_content = format_prompt(
                 PromptType.GENERAL,
@@ -670,7 +653,7 @@ class HybridEngine:
         
         # Fallback if Prolog didn't yield specific info and Ollama failed or is disabled
         if prolog_data_found: # Return what little prolog might have found (e.g. partial search result)
-             return {"response": "\\n".join(prolog_info_parts), "source": "prolog_partial"}
+             return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
         
         logging.info("Using default/mock response for general query as other methods failed.")
         # The original mock for general query was in HybridEngine._mock_general_query, which is not defined.
