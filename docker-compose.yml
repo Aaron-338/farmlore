@@ -9,13 +9,7 @@ services:
       - media_volume:/app/media
     ports:
       - "8000:8000"
-    command: >
-      bash -c "python manage.py migrate &&
-              python create_superuser.py &&
-              python manage.py collectstatic --noinput &&
-              export USE_OLLAMA=true &&
-              export USE_PROLOG_PRIMARY=true &&
-              gunicorn farmlore.wsgi:application --bind 0.0.0.0:8000 --timeout 300 --workers 1 --worker-class gthread --worker-connections 500 --threads 2"
+    command: ["/app/start_web.sh"]
     environment:
       - DEBUG=True
       - SECRET_KEY=your_secret_key_here
@@ -33,7 +27,7 @@ services:
       db:
         condition: service_healthy
       ollama:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "/app/health_check.py", "--service", "web"]
       interval: 30s
@@ -104,9 +98,9 @@ services:
     healthcheck:
       test: ["CMD", "sh", "/healthcheck.sh"]
       interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      timeout: 20s
+      retries: 10
+      start_period: 120s
     networks:
       - farmlore_network
 

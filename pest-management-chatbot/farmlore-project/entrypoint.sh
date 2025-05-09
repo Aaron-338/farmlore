@@ -36,9 +36,11 @@ python create_superuser.py
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+# init_ollama_models.sh is called by docker-compose command, so no need to call here explicitly
+
 # Set environment variables for optimized performance on resource-constrained systems
 export USE_PROLOG_PRIMARY=${USE_PROLOG_PRIMARY:-true}
-export OLLAMA_MODEL=${OLLAMA_MODEL:-gemma:2b}
+export OLLAMA_MODEL=${OLLAMA_MODEL:-tinyllama:latest}
 
 echo "Configuration:"
 echo "- Using Prolog as primary engine: $USE_PROLOG_PRIMARY"
