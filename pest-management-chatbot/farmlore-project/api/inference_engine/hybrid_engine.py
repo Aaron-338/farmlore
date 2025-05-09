@@ -17,6 +17,12 @@ from .prompt_templates import PromptType, format_prompt
 from core.data_structures import SimilarQueryDetector
 from api.monitoring import record_query_performance
 
+# Define keywords for clarification logic (expand these lists as needed)
+VAGUE_SYMPTOM_WORDS = ["spots", "yellow leaves", "sick", "dying", "problem", "disease", "issue", "blight", "wilt", "rust", "mold", "rot", "lesions", "stunted"]
+VAGUE_PEST_WORDS = ["pests", "bugs", "insects", "infestation"]
+KNOWN_CROP_NAMES = ["maize", "corn", "cabbage", "potato", "tomato", "rice", "beans"]
+# TODO: Consider loading KNOWN_CROP_NAMES dynamically from Prolog KB if possible
+
 class HybridEngine:
     """
     An enhanced hybrid inference engine that combines rule-based and LLM-based approaches.
@@ -544,11 +550,40 @@ class HybridEngine:
         return self._mock_indigenous_knowledge(params)
     
     def _process_general_query(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
-        """Process general queries, trying Prolog KB search first, then Ollama if attempt_ollama_call is True."""
-        user_query = params.get("query", "")
+        """Process general queries, trying Prolog KB search first, then Ollama, with clarification logic."""
+        user_query = params.get("query", "").lower() # Work with lowercase
         prolog_info_parts = []
         prolog_data_found = False
 
+        # --- START: Clarification Logic --- 
+        needs_clarification = False
+        required_info = None
+        clarification_question = ""
+
+        has_vague_symptom = any(word in user_query for word in VAGUE_SYMPTOM_WORDS)
+        has_vague_pest = any(word in user_query for word in VAGUE_PEST_WORDS)
+        has_known_crop = any(crop in user_query for crop in KNOWN_CROP_NAMES)
+
+        if (has_vague_symptom or has_vague_pest) and not has_known_crop:
+            needs_clarification = True
+            required_info = "crop_name"
+            clarification_question = "Okay, I understand there's an issue. To help further, could you please specify which crop you are asking about?"
+            # TODO: Consider more specific questions based on the trigger words.
+
+        if needs_clarification:
+            logging.info(f"[CLARIFICATION] Query '{user_query}' is vague, requires {required_info}. Asking: {clarification_question}")
+            # TODO: Implement state management here (e.g., save original query and required_info in session/cache)
+            # For now, just return the clarification request directly
+            return {
+                "response": clarification_question,
+                "source": "clarification_request", 
+                "success": True,
+                "action_needed": "ask_user_for_clarification", # Hint for frontend/caller
+                "required_info": required_info
+            }
+        # --- END: Clarification Logic --- 
+
+        # If no clarification needed, proceed with original logic...
         logging.info(f"[GENERAL_QUERY] Attempting general KB search with PrologService for: {user_query}")
         prolog_search_result = self.prolog_service.search_prolog_kb(user_query)
 
