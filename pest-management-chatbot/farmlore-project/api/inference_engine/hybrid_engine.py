@@ -9,9 +9,9 @@ from typing import Dict, List, Any, Optional, Union, Tuple
 import time
 from functools import lru_cache
 
-# Change to relative import for robustness
-# from prolog_integration.service import PrologService
-from ..prolog_integration.service import PrologService
+# Revert to direct import as relative import failed in container
+from prolog_integration.service import PrologService
+# from ..prolog_integration.service import PrologService
 from .ollama_handler import OllamaHandler
 from .prompt_templates import PromptType, format_prompt
 from core.data_structures import SimilarQueryDetector
