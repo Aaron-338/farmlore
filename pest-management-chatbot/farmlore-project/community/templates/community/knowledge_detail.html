@@ -1,0 +1,254 @@
+{% extends 'community/base.html' %}
+{% load community_filters %}
+
+{% block title %}{{ knowledge.title }} - FarmLore Community{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'community:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Knowledge Detail</li>
+            </ol>
+        </nav>
+        <h1 class="display-5">{{ knowledge.title }}</h1>
+        <div class="mb-3">
+            <span class="badge indigenous-badge">{{ knowledge.get_practice_type_display }}</span>
+            {% if knowledge.is_verified %}
+                <span class="badge bg-success">Verified</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+        </div>
+        <p class="keeper-info">
+            Shared by {{ knowledge.keeper.full_name }} from {{ knowledge.keeper.village }}
+            on {{ knowledge.date_added|date:"F j, Y" }}
+        </p>
+    </div>
+    <div class="col-md-4 text-end">
+        {% if user.is_authenticated and not user_validation %}
+            <a href="{% url 'community:validation_create' knowledge.id %}" class="btn btn-success">
+                <i class="bi bi-check-circle"></i> Validate This Knowledge
+            </a>
+        {% endif %}
+        {% if user == knowledge.keeper.user or user.is_staff %}
+            <a href="#" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Practice Description</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ knowledge.description }}</p>
+                
+                <h6 class="mt-4">Materials Needed:</h6>
+                <ul>
+                    {% for material in knowledge.materials %}
+                        <li>{{ material }}</li>
+                    {% endfor %}
+                </ul>
+                
+                {% if knowledge.pests %}
+                    <h6 class="mt-4">Target Pests:</h6>
+                    <div class="mb-3">
+                        {% for pest in knowledge.pests %}
+                            <span class="badge bg-danger me-2">{{ pest }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <h6 class="mt-4">Applicable Crops:</h6>
+                <div class="mb-3">
+                    {% for crop in knowledge.crops %}
+                        <span class="badge bg-success me-2">{{ crop }}</span>
+                    {% endfor %}
+                </div>
+                
+                <h6 class="mt-4">Best Seasons:</h6>
+                <div class="mb-3">
+                    {% for season in knowledge.seasons %}
+                        <span class="badge bg-info text-dark me-2">{{ season }}</span>
+                    {% endfor %}
+                </div>
+                
+                {% if knowledge.prolog_name %}
+                    <div class="alert alert-success mt-4">
+                        <h6 class="alert-heading">Integration Status:</h6>
+                        <p class="mb-0">This knowledge has been integrated into the FarmLore chatbot as <code>{{ knowledge.prolog_name }}</code>.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Community Validations</h5>
+                <span class="badge bg-primary">{{ validation_count }} validations</span>
+            </div>
+            <div class="card-body">
+                {% if validations %}
+                    <div class="mb-4">
+                        <h6>Average Rating: 
+                            <span class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= average_rating|floatformat:"0" %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                ({{ average_rating|floatformat:1 }}/5)
+                            </span>
+                        </h6>
+                    </div>
+                    
+                    {% for validation in validations %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">{{ validation.validator.get_full_name|default:validation.validator.username }}</h6>
+                                    <div class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= validation.rating %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="mb-1">{{ validation.comments }}</p>
+                                <div class="small text-muted">
+                                    Validated on {{ validation.date_added|date:"F j, Y" }}
+                                    {% if validation.has_used %}
+                                        <span class="badge bg-info text-dark">Has used this practice</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <p>This knowledge has not been validated by the community yet. Be the first to validate!</p>
+                        {% if user.is_authenticated and not user_validation %}
+                            <a href="{% url 'community:validation_create' knowledge.id %}" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Validate This Knowledge
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Knowledge Keeper</h5>
+            </div>
+            <div class="card-body">
+                <h5>{{ knowledge.keeper.full_name }}</h5>
+                <p><strong>Village:</strong> {{ knowledge.keeper.village }}</p>
+                <p><strong>District:</strong> {{ knowledge.keeper.district }}</p>
+                <p><strong>Experience:</strong> {{ knowledge.keeper.years_experience }} years</p>
+                {% if knowledge.keeper.specialization %}
+                    <p><strong>Specialization:</strong> {{ knowledge.keeper.specialization }}</p>
+                {% endif %}
+                {% if knowledge.keeper.bio %}
+                    <p><strong>Bio:</strong> {{ knowledge.keeper.bio }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Verification Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3">
+                    {% with verification_count=knowledge.verification_count|default:0 %}
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {% widthratio verification_count 5 100 %}%" 
+                         aria-valuenow="{{ verification_count }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="5">
+                        {{ verification_count }}/5
+                    </div>
+                    {% endwith %}
+                </div>
+                <p>
+                    <strong>Status:</strong> 
+                    <span class="badge {% if knowledge.is_verified %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                        {{ knowledge.get_verification_status_display }}
+                    </span>
+                </p>
+                <p><strong>Validations needed:</strong> 
+                    {% if knowledge.is_verified %}
+                        Verified!
+                    {% else %}
+                        {% with verification_count=knowledge.verification_count|default:0 %}
+                            {{ 5|add:"-verification_count" }} more
+                        {% endwith %}
+                    {% endif %}
+                </p>
+                
+                {% if knowledge.is_verified and not knowledge.prolog_name and user.is_superuser %}
+                    <div class="alert alert-info">
+                        <p>This knowledge has been verified but not yet integrated into the FarmLore chatbot.</p>
+                        <form method="post" action="/community/api/knowledge/{{ knowledge.id }}/export_to_prolog/">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-download"></i> Export to Prolog
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Related Knowledge</h5>
+            </div>
+            <div class="card-body">
+                <h6>Same Practice Type:</h6>
+                <ul class="list-group list-group-flush mb-3">
+                    {% for related in related_by_type %}
+                        {% if related.id != knowledge.id %}
+                            <li class="list-group-item">
+                                <a href="{% url 'community:knowledge_detail' related.id %}">{{ related.title }}</a>
+                            </li>
+                        {% endif %}
+                    {% empty %}
+                        <li class="list-group-item">No related practices found</li>
+                    {% endfor %}
+                </ul>
+                
+                <h6>For Same Crops:</h6>
+                <ul class="list-group list-group-flush">
+                    {% for related in related_by_crop %}
+                        {% if related.id != knowledge.id %}
+                            <li class="list-group-item">
+                                <a href="{% url 'community:knowledge_detail' related.id %}">{{ related.title }}</a>
+                            </li>
+                        {% endif %}
+                    {% empty %}
+                        <li class="list-group-item">No related practices found</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

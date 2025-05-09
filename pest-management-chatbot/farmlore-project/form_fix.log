@@ -1,0 +1,60 @@
+2025-04-25 00:34:32,230 - INFO - === FIXING SELECT2 HANDLING IN KNOWLEDGE FORM ===
+2025-04-25 00:34:32,273 - INFO - Creating test entry for user: Katse
+2025-04-25 00:34:32,281 - INFO - Found existing keeper:  from Unknown
+2025-04-25 00:34:32,313 - INFO - Created entry: ID 16, Title: Select2 Test - Katse - 20250425003432
+2025-04-25 00:34:32,315 - INFO - Materials: ['Material 1', 'Material 2']
+2025-04-25 00:34:32,316 - INFO - Crops: ['Maize', 'Beans']
+2025-04-25 00:34:32,317 - INFO - Pests: ['Aphids', 'Beetles']
+2025-04-25 00:34:32,319 - INFO - Seasons: ['Summer', 'Spring']
+2025-04-25 00:34:32,320 - INFO - Creating test entry for user: Mpho
+2025-04-25 00:34:32,324 - INFO - Found existing keeper: Mpho Lemena from Unknown
+2025-04-25 00:34:32,369 - INFO - Created entry: ID 17, Title: Select2 Test - Mpho - 20250425003432
+2025-04-25 00:34:32,370 - INFO - Materials: ['Material 1', 'Material 2']
+2025-04-25 00:34:32,371 - INFO - Crops: ['Maize', 'Beans']
+2025-04-25 00:34:32,372 - INFO - Pests: ['Aphids', 'Beetles']
+2025-04-25 00:34:32,373 - INFO - Seasons: ['Summer', 'Spring']
+2025-04-25 00:34:32,374 - INFO - Creating test entry for user: admin
+2025-04-25 00:34:32,379 - INFO - Found existing keeper:  from Unknown
+2025-04-25 00:34:32,429 - INFO - Created entry: ID 18, Title: Select2 Test - admin - 20250425003432
+2025-04-25 00:34:32,430 - INFO - Materials: ['Material 1', 'Material 2']
+2025-04-25 00:34:32,430 - INFO - Crops: ['Maize', 'Beans']
+2025-04-25 00:34:32,433 - INFO - Pests: ['Aphids', 'Beetles']
+2025-04-25 00:34:32,434 - INFO - Seasons: ['Summer', 'Spring']
+2025-04-25 00:34:32,434 - INFO - Creating test entry for user: testuser
+2025-04-25 00:34:32,451 - INFO - Found existing keeper: Test User from Unknown
+2025-04-25 00:34:32,476 - INFO - Created entry: ID 19, Title: Select2 Test - testuser - 20250425003432
+2025-04-25 00:34:32,477 - INFO - Materials: ['Material 1', 'Material 2']
+2025-04-25 00:34:32,483 - INFO - Crops: ['Maize', 'Beans']
+2025-04-25 00:34:32,484 - INFO - Pests: ['Aphids', 'Beetles']
+2025-04-25 00:34:32,485 - INFO - Seasons: ['Summer', 'Spring']
+2025-04-25 00:34:32,486 - INFO - Creating test entry for user: Mohau
+2025-04-25 00:34:32,492 - INFO - Found existing keeper:  from Unknown
+2025-04-25 00:34:32,514 - INFO - Created entry: ID 20, Title: Select2 Test - Mohau - 20250425003432
+2025-04-25 00:34:32,514 - INFO - Materials: ['Material 1', 'Material 2']
+2025-04-25 00:34:32,515 - INFO - Crops: ['Maize', 'Beans']
+2025-04-25 00:34:32,515 - INFO - Pests: ['Aphids', 'Beetles']
+2025-04-25 00:34:32,516 - INFO - Seasons: ['Summer', 'Spring']
+2025-04-25 00:34:32,521 - INFO - Creating test entry for user: Poelo
+2025-04-25 00:34:32,532 - INFO - Found existing keeper:  from Unknown
+2025-04-25 00:34:32,547 - INFO - Created entry: ID 21, Title: Select2 Test - Poelo - 20250425003432
+2025-04-25 00:34:32,548 - INFO - Materials: ['Material 1', 'Material 2']
+2025-04-25 00:34:32,549 - INFO - Crops: ['Maize', 'Beans']
+2025-04-25 00:34:32,552 - INFO - Pests: ['Aphids', 'Beetles']
+2025-04-25 00:34:32,553 - INFO - Seasons: ['Summer', 'Spring']
+2025-04-25 00:34:32,556 - INFO - 
+=== CHECKING DASHBOARD VISIBILITY ===
+2025-04-25 00:34:32,566 - INFO - Total knowledge entries: 21
+2025-04-25 00:34:32,602 - INFO - ID: 21, Title: Select2 Test - Poelo - 20250425003432, User: Poelo
+2025-04-25 00:34:32,615 - INFO - ID: 20, Title: Select2 Test - Mohau - 20250425003432, User: Mohau
+2025-04-25 00:34:32,629 - INFO - ID: 19, Title: Select2 Test - testuser - 20250425003432, User: testuser
+2025-04-25 00:34:32,645 - INFO - ID: 18, Title: Select2 Test - admin - 20250425003432, User: admin
+2025-04-25 00:34:32,656 - INFO - ID: 17, Title: Select2 Test - Mpho - 20250425003432, User: Mpho
+2025-04-25 00:34:32,668 - INFO - ID: 16, Title: Select2 Test - Katse - 20250425003432, User: Katse
+2025-04-25 00:34:32,687 - INFO - ID: 15, Title: Debug Form Test - 1745540297 - Poelo, User: Poelo
+2025-04-25 00:34:32,703 - INFO - ID: 14, Title: Debug Form Test - 1745540297 - Mohau, User: Mohau
+2025-04-25 00:34:32,713 - INFO - ID: 13, Title: Debug Form Test - 1745540297 - testuser, User: testuser
+2025-04-25 00:34:32,719 - INFO - ID: 12, Title: Debug Form Test - 1745540297 - admin, User: admin
+2025-04-25 00:34:32,722 - INFO - 
+=== CHECKING MIGRATIONS ===
+2025-04-25 00:34:32,998 - INFO - 
+Fix script completed. Please check the logs for any issues.

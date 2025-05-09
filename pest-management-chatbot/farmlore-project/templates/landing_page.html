@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}FarmLore - Indigenous Agricultural Knowledge{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("{% static 'images/farm_background.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 100px 0;
+        margin-bottom: 40px;
+    }
+    
+    .pathway-card {
+        border-radius: 10px;
+        transition: transform 0.3s;
+        height: 100%;
+    }
+    
+    .pathway-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .pathway-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #28a745;
+    }
+    
+    .auth-buttons .btn {
+        margin: 0 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-3 mb-4">FarmLore</h1>
+        <p class="lead mb-5">Preserving and sharing indigenous agricultural knowledge from the Basotho community</p>
+        
+        {% if not user.is_authenticated %}
+        <div class="auth-buttons">
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-light btn-lg">Login</a>
+            <a href="{% url 'community:register' %}" class="btn btn-outline-light btn-lg">Register</a>
+        </div>
+        {% else %}
+        <p class="mb-4">Welcome back, {{ user.username }}!</p>
+        <div class="auth-buttons">
+            <a href="{% url 'community:dashboard' %}" class="btn btn-light btn-lg">Go to Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn btn-outline-light">Logout</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Pathways Section -->
+<div class="container mb-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h2 class="display-5">Choose Your Path</h2>
+            <p class="lead text-muted">FarmLore offers two ways to engage with indigenous agricultural knowledge</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Community Pathway -->
+        <div class="col-md-6 mb-4">
+            <div class="card pathway-card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-people-fill pathway-icon"></i>
+                    <h3 class="card-title">Community Platform</h3>
+                    <p class="card-text mb-4">Share your indigenous knowledge, validate community contributions, and connect with other farmers.</p>
+                    <p class="card-text text-muted mb-4">Perfect for knowledge keepers and community members who want to preserve traditional practices.</p>
+                    {% if user.is_authenticated %}
+                        {% if user.groups.all.0.name == 'knowledge_keeper' or user.groups.all.0.name == 'community_member' or user.groups.all.0.name == 'administrator' %}
+                            <a href="{% url 'community:dashboard' %}" class="btn btn-success btn-lg">Join Community</a>
+                        {% else %}
+                            <p class="text-warning mb-2">Your account currently has chatbot access only.</p>
+                            <p class="small text-muted mt-2">Community access is granted by administrators</p>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-success btn-lg">Login Required</a>
+                        <p class="small text-muted mt-2">Community access is granted by administrators</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chatbot Pathway -->
+        <div class="col-md-6 mb-4">
+            <div class="card pathway-card shadow-sm">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-chat-dots-fill pathway-icon"></i>
+                    <h3 class="card-title">FarmLore Chatbot</h3>
+                    <p class="card-text mb-4">Ask questions and get advice about pest management, crop diseases, and traditional farming practices.</p>
+                    <p class="card-text text-muted mb-4">Ideal for farmers seeking solutions to agricultural challenges using both modern and indigenous knowledge.</p>
+                    <a href="{% url 'chatbot:chat' %}" class="btn btn-success btn-lg">Chat with FarmLore</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h2 class="mb-4">About FarmLore</h2>
+                <p class="lead">FarmLore is a platform dedicated to preserving and sharing indigenous agricultural knowledge from the Basotho community. Our mission is to bridge traditional wisdom with modern farming practices.</p>
+                <p>By combining community-validated indigenous knowledge with a powerful chatbot, we provide a comprehensive resource for farmers in Lesotho and beyond.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

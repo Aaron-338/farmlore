@@ -1,0 +1,4 @@
+DEBUG MESSAGE: User's knowledge entries
+
+DATA:
+[{'id': 18, 'title': 'Select2 Test - admin - 20250425003432', 'verification_status': 'pending', 'verification_count': 0, 'date_added': '2025-04-25 00:34:32.381269+00:00'}, {'id': 12, 'title': 'Debug Form Test - 1745540297 - admin', 'verification_status': 'pending', 'verification_count': 0, 'date_added': '2025-04-25 00:18:17.495584+00:00'}, {'id': 6, 'title': 'Test Entry by admin at 00:05:19', 'verification_status': 'pending', 'verification_count': 0, 'date_added': '2025-04-25 00:05:19.602326+00:00'}]

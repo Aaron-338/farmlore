@@ -1,0 +1,4 @@
+DEBUG MESSAGE: All knowledge entries in dashboard
+
+DATA:
+[{'id': 1, 'title': 'Test Knowledge Entry', 'keeper': ' from Unknown', 'verification_status': 'verified', 'verification_count': 5, 'date_added': '2025-04-12 18:44:11.441742+00:00'}]

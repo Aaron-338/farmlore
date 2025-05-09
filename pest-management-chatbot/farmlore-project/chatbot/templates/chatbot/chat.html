@@ -1,0 +1,676 @@
+{% extends 'chatbot/base.html' %}
+
+{% block title %}Chat - FarmLore{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .messages-container {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    .message {
+        margin-bottom: 1rem;
+        max-width: 80%;
+    }
+    .user-message {
+        margin-left: auto;
+        background-color: #198754;
+        color: white;
+        border-radius: 1rem 1rem 0 1rem;
+        padding: 0.75rem;
+    }
+    .assistant-message {
+        margin-right: auto;
+        background-color: white;
+        border-radius: 1rem 1rem 1rem 0;
+        padding: 0.75rem;
+        border: 1px solid #dee2e6;
+        position: relative;
+    }
+    .assistant-message .message-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .assistant-message .source-indicator {
+        display: inline-block;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        margin-right: 5px;
+    }
+    .assistant-message .source-llm {
+        background-color: #e3f2fd;
+        color: #0d6efd;
+    }
+    .assistant-message .source-prolog {
+        background-color: #f8d7da;
+        color: #dc3545;
+    }
+    .feedback-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    .feedback-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-size: 1rem;
+        color: #6c757d;
+        transition: color 0.2s;
+    }
+    .feedback-btn:hover {
+        color: #198754;
+    }
+    .feedback-btn.active {
+        color: #198754;
+    }
+    .feedback-btn.negative.active {
+        color: #dc3545;
+    }
+    .typing-indicator {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: white;
+        border-radius: 1rem;
+        border: 1px solid #dee2e6;
+    }
+    .typing-indicator span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        margin-right: 3px;
+        animation: typing 1s infinite;
+    }
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+        margin-right: 0;
+    }
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    /* Stats panel styling */
+    .stats-panel {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .stats-panel h5 {
+        margin-bottom: 12px;
+        color: #495057;
+    }
+    .stats-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.25rem;
+        margin-right: 5px;
+    }
+    .stats-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .stats-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .stats-value {
+        color: #6c757d;
+    }
+    .engine-status {
+        padding: 4px 8px;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .engine-status.active {
+        background-color: #d1e7dd;
+        color: #146c43;
+    }
+    .engine-status.inactive {
+        background-color: #f8d7da;
+        color: #b02a37;
+    }
+    .engine-status.initializing {
+        background-color: #fff3cd;
+        color: #997404;
+    }
+    
+    /* Debug panel for development purposes */
+    .debug-panel {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        display: none;
+    }
+    
+    .show-debug {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-seedling me-2"></i> Chat with FarmLore Assistant
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="chat-container">
+                    <div id="messages" class="messages-container">
+                        <div class="message assistant-message">
+                            <p class="mb-0">Hello! I'm your FarmLore assistant for agricultural knowledge and soil fertility. How can I help you today?</p>
+                            <div class="message-footer">
+                                <span class="source-indicator source-prolog">Rule-Based</span>
+                                <div class="feedback-buttons" data-message-id="welcome">
+                                    <button class="feedback-btn positive" title="Helpful">👍</button>
+                                    <button class="feedback-btn negative" title="Not helpful">👎</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="typing-indicator" class="p-3 d-none">
+                        <div class="typing-indicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <div class="p-3 border-top">
+                        <form id="chat-form">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" id="user-input" class="form-control" placeholder="Type your message..." required>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Example Questions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-success btn-sm example-question">
+                        What pests affect tomato plants?
+                    </button>
+                    <button class="btn btn-outline-success btn-sm example-question">
+                        My rice plants have yellow leaves, what could it be?
+                    </button>
+                    <button class="btn btn-outline-success btn-sm example-question">
+                        How do I control aphids on my cabbage?
+                    </button>
+                    <button class="btn btn-outline-success btn-sm example-question">
+                        What are natural methods for soil fertilization?
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Panel -->
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">System Status</h5>
+                <button id="refreshStats" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body stats-panel">
+                <div class="stats-row">
+                    <span class="stats-label">AI Engine Status:</span>
+                    <span id="engineStatus" class="engine-status initializing">Initializing...</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Ollama LLM:</span>
+                    <span id="ollamaStatus" class="engine-status inactive">Not Available</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Rule-Based Engine:</span>
+                    <span id="prologStatus" class="engine-status active">Active</span>
+                </div>
+                <hr>
+                <h6>Message Sources</h6>
+                <div class="stats-row">
+                    <span class="stats-label">AI-Generated:</span>
+                    <span id="llmCount" class="stats-value">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Rule-Based:</span>
+                    <span id="prologCount" class="stats-value">1</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">Total Messages:</span>
+                    <span id="totalCount" class="stats-value">1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Debug panel (hidden in production) -->
+<div id="debugPanel" class="debug-panel">
+    <h5>Debug Information</h5>
+    <pre id="debugLog"></pre>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesContainer = document.getElementById('messages');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const exampleQuestions = document.querySelectorAll('.example-question');
+        const refreshStatsButton = document.getElementById('refreshStats');
+        
+        // Stats elements
+        const engineStatus = document.getElementById('engineStatus');
+        const ollamaStatus = document.getElementById('ollamaStatus');
+        const prologStatus = document.getElementById('prologStatus');
+        const llmCount = document.getElementById('llmCount');
+        const prologCount = document.getElementById('prologCount');
+        const totalCount = document.getElementById('totalCount');
+        
+        // Store chat history with message IDs
+        const messages = [
+            { 
+                id: 'welcome',
+                role: 'assistant', 
+                content: 'Hello! I\'m your FarmLore assistant for agricultural knowledge and soil fertility. How can I help you today?',
+                source: 'prolog'
+            }
+        ];
+        
+        // Message source counters
+        let stats = {
+            llm: 0,
+            prolog: 1,
+            total: 1,
+            ollamaInitialized: false,
+            ollamaAvailable: false
+        };
+        
+        // Initialize stats panel
+        updateStatsDisplay();
+        
+        // Function to update the stats display
+        function updateStatsDisplay() {
+            // Update counters
+            llmCount.textContent = stats.llm;
+            prologCount.textContent = stats.prolog;
+            totalCount.textContent = stats.total;
+            
+            // Update engine status
+            if (stats.ollamaInitialized && stats.ollamaAvailable) {
+                engineStatus.textContent = 'Hybrid Mode';
+                engineStatus.className = 'engine-status active';
+                ollamaStatus.textContent = 'Active';
+                ollamaStatus.className = 'engine-status active';
+            } else if (stats.ollamaInitialized && !stats.ollamaAvailable) {
+                engineStatus.textContent = 'Rule-Based Only';
+                engineStatus.className = 'engine-status inactive';
+                ollamaStatus.textContent = 'Configured But Unavailable';
+                ollamaStatus.className = 'engine-status inactive';
+            } else if (!stats.ollamaInitialized) {
+                engineStatus.textContent = 'Initializing...';
+                engineStatus.className = 'engine-status initializing';
+                ollamaStatus.textContent = 'Initializing...';
+                ollamaStatus.className = 'engine-status initializing';
+            }
+        }
+        
+        // Refresh stats button handler
+        refreshStatsButton.addEventListener('click', function() {
+            fetchEngineStats();
+        });
+        
+        // Function to fetch engine stats
+        function fetchEngineStats() {
+            fetch('/api/hybrid/stats/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.stats) {
+                        stats.ollamaAvailable = data.stats.ollama_available || false;
+                        stats.ollamaInitialized = true; // If we got a response, we're initialized
+                        updateStatsDisplay();
+                        debugLog('Updated engine stats:', data.stats);
+                    }
+                })
+                .catch(error => {
+                    debugLog('Error fetching engine stats:', error);
+                });
+        }
+        
+        // Fetch stats on load
+        fetchEngineStats();
+        
+        // Random ID generator for messages
+        function generateMessageId() {
+            return 'msg_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Debug logging function
+        const DEBUG = true;
+        function debugLog(message) {
+            if (DEBUG) {
+                const debugPanel = document.getElementById('debugPanel');
+                const debugLog = document.getElementById('debugLog');
+                
+                // Show the debug panel
+                debugPanel.classList.add('show-debug');
+                
+                // Add timestamp
+                const timestamp = new Date().toLocaleTimeString();
+                
+                // Format message
+                let formattedMessage = `[${timestamp}] `;
+                if (typeof message === 'object') {
+                    formattedMessage += JSON.stringify(message, null, 2);
+                } else {
+                    formattedMessage += message;
+                }
+                
+                // Add to log
+                debugLog.textContent += formattedMessage + '\n';
+                
+                // Auto-scroll
+                debugLog.scrollTop = debugLog.scrollHeight;
+                
+                // Also log to console
+                console.log(message);
+            }
+        }
+        
+        // Function to add a message to the chat
+        function addMessage(role, content, source = null, messageId = null) {
+            // Generate message ID if not provided
+            const id = messageId || generateMessageId();
+            
+            // Add to messages array
+            messages.push({ id, role, content, source });
+            
+            // Update stats
+            stats.total++;
+            if (role === 'assistant') {
+                if (source === 'llm') {
+                    stats.llm++;
+                } else {
+                    stats.prolog++;
+                }
+                updateStatsDisplay();
+            }
+            
+            // Create message element
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(role === 'user' ? 'user-message' : 'assistant-message');
+            messageDiv.dataset.messageId = id;
+            
+            const messagePara = document.createElement('p');
+            messagePara.classList.add('mb-0');
+            messagePara.textContent = content;
+            
+            messageDiv.appendChild(messagePara);
+            
+            // Add source indicator and feedback buttons for assistant messages
+            if (role === 'assistant') {
+                const messageFooter = document.createElement('div');
+                messageFooter.classList.add('message-footer');
+                
+                // Only add source indicator if source is provided
+                if (source) {
+                    const sourceIndicator = document.createElement('span');
+                    sourceIndicator.classList.add('source-indicator');
+                    
+                    if (source === 'llm') {
+                        sourceIndicator.classList.add('source-llm');
+                        sourceIndicator.textContent = 'AI-Generated';
+                    } else {
+                        sourceIndicator.classList.add('source-prolog');
+                        sourceIndicator.textContent = 'Rule-Based';
+                    }
+                    
+                    messageFooter.appendChild(sourceIndicator);
+                }
+                
+                // Add feedback buttons
+                const feedbackButtons = document.createElement('div');
+                feedbackButtons.classList.add('feedback-buttons');
+                feedbackButtons.dataset.messageId = id;
+                
+                const likeButton = document.createElement('button');
+                likeButton.classList.add('feedback-btn', 'positive');
+                likeButton.title = 'Helpful';
+                likeButton.textContent = '👍';
+                likeButton.onclick = function() { provideFeedback(id, 'positive'); };
+                
+                const dislikeButton = document.createElement('button');
+                dislikeButton.classList.add('feedback-btn', 'negative');
+                dislikeButton.title = 'Not helpful';
+                dislikeButton.textContent = '👎';
+                dislikeButton.onclick = function() { provideFeedback(id, 'negative'); };
+                
+                feedbackButtons.appendChild(likeButton);
+                feedbackButtons.appendChild(dislikeButton);
+                
+                messageFooter.appendChild(feedbackButtons);
+                messageDiv.appendChild(messageFooter);
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            debugLog(`Added ${role} message: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}" with ID ${id} and source ${source}`);
+        }
+        
+        // Function to handle feedback
+        function provideFeedback(messageId, feedbackType) {
+            const feedbackButtons = document.querySelector(`.feedback-buttons[data-message-id="${messageId}"]`);
+            if (!feedbackButtons) return;
+            
+            // Get the buttons
+            const buttons = feedbackButtons.querySelectorAll('.feedback-btn');
+            
+            // Reset all buttons
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Activate the selected button
+            const selectedButton = feedbackButtons.querySelector(`.${feedbackType}`);
+            if (selectedButton) {
+                selectedButton.classList.add('active');
+            }
+            
+            // Find the message in our array
+            const message = messages.find(m => m.id === messageId);
+            if (!message) return;
+            
+            // Log the feedback
+            debugLog(`Feedback provided: ${feedbackType} for message ID ${messageId}`);
+            
+            // Send the feedback to the server
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch('/api/feedback/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    message_id: messageId,
+                    feedback_type: feedbackType,
+                    message_content: message.content,
+                    message_source: message.source || 'unknown'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                debugLog(`Feedback response: ${JSON.stringify(data)}`);
+            })
+            .catch(error => {
+                debugLog(`Error sending feedback: ${error}`);
+            });
+        }
+        
+        // Function to show typing indicator
+        function showTypingIndicator() {
+            typingIndicator.classList.remove('d-none');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Function to hide typing indicator
+        function hideTypingIndicator() {
+            typingIndicator.classList.add('d-none');
+        }
+        
+        // Function to send message to API
+        async function sendMessage(userMessage) {
+            try {
+                showTypingIndicator();
+                
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                debugLog(`Sending message: "${userMessage}"`);
+                
+                // IMPORTANT: Use consistent format for the API
+                const requestBody = {
+                    message: userMessage
+                };
+                
+                debugLog(`Request body: ${JSON.stringify(requestBody)}`);
+                
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                debugLog(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+                
+                const data = await response.json();
+                hideTypingIndicator();
+                
+                debugLog(`Response data: ${JSON.stringify(data)}`);
+                
+                // Handle response based on its structure
+                let botResponse = "";
+                let responseSource = data.source || 
+                                    (data.metadata && data.metadata.source) || 
+                                    (data.result && data.result.source) || 
+                                    'prolog';
+                
+                // Update engine status info if available
+                if (data.metadata && data.metadata.engine_status) {
+                    stats.ollamaInitialized = data.metadata.engine_status.ollama_initialized || false;
+                    stats.ollamaAvailable = data.metadata.engine_status.ollama_available || false;
+                    updateStatsDisplay();
+                }
+                
+                if (!data.success && data.error) {
+                    debugLog('Error response received');
+                    botResponse = 'Sorry, there was an error: ' + data.error;
+                    responseSource = 'prolog';
+                    // Log detailed error info if available
+                    if (data.error_details) {
+                        debugLog(`Error details: ${data.error_details}`);
+                    }
+                } else if (data.message && typeof data.message === 'object' && data.message.content) {
+                    debugLog('Extracting response from message.content');
+                    botResponse = data.message.content;
+                } else if (data.message && typeof data.message === 'string') {
+                    debugLog('Extracting response from direct message string');
+                    botResponse = data.message;
+                } else if (data.response) {
+                    debugLog('Extracting response from response field');
+                    botResponse = data.response;
+                } else if (data.result && data.result.response) {
+                    debugLog('Extracting response from result.response field');
+                    botResponse = data.result.response;
+                    responseSource = data.result.source || responseSource;
+                } else if (data.error) {
+                    debugLog('Error response received');
+                    botResponse = 'Sorry, there was an error: ' + data.error;
+                    responseSource = 'prolog';
+                } else {
+                    debugLog('No recognizable response format');
+                    botResponse = 'Sorry, I received an unexpected response format. Please try again.';
+                    responseSource = 'prolog';
+                }
+                
+                addMessage('assistant', botResponse, responseSource);
+            } catch (error) {
+                hideTypingIndicator();
+                debugLog(`Error: ${error.message}`);
+                addMessage('assistant', 'Sorry, I encountered an error. Please try again later.', 'prolog');
+            }
+        }
+        
+        // Handle form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            
+            if (message) {
+                addMessage('user', message);
+                userInput.value = '';
+                sendMessage(message);
+            }
+        });
+        
+        // Handle example questions
+        exampleQuestions.forEach(button => {
+            button.addEventListener('click', function() {
+                const question = this.textContent.trim();
+                userInput.value = question;
+                chatForm.dispatchEvent(new Event('submit'));
+            });
+        });
+    });
+</script>
+{% endblock %}

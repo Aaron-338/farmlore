@@ -1,0 +1,215 @@
+{% extends 'community/base.html' %}
+
+{% block title %}Validate Knowledge - FarmLore Community{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'community:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'community:knowledge_detail' knowledge.pk %}">{{ knowledge.title }}</a></li>
+                <li class="breadcrumb-item active">Validate Knowledge</li>
+            </ol>
+        </nav>
+        <h1 class="display-5">Validate Indigenous Knowledge</h1>
+        <p class="lead">Help verify the authenticity and effectiveness of this traditional practice</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Knowledge to Validate</h5>
+            </div>
+            <div class="card-body">
+                <h4>{{ knowledge.title }}</h4>
+                <div class="mb-3">
+                    <span class="badge indigenous-badge">{{ knowledge.get_practice_type_display }}</span>
+                </div>
+                <p>{{ knowledge.description }}</p>
+                
+                <h6 class="mt-4">Materials Needed:</h6>
+                <ul>
+                    {% for material in knowledge.materials %}
+                        <li>{{ material }}</li>
+                    {% endfor %}
+                </ul>
+                
+                {% if knowledge.pests %}
+                    <h6 class="mt-4">Target Pests:</h6>
+                    <div class="mb-3">
+                        {% for pest in knowledge.pests %}
+                            <span class="badge bg-danger me-2">{{ pest }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <h6 class="mt-4">Applicable Crops:</h6>
+                <div class="mb-3">
+                    {% for crop in knowledge.crops %}
+                        <span class="badge bg-success me-2">{{ crop }}</span>
+                    {% endfor %}
+                </div>
+                
+                <p class="keeper-info mt-4">
+                    Shared by {{ knowledge.keeper.full_name }} from {{ knowledge.keeper.village }}
+                    on {{ knowledge.date_added|date:"F j, Y" }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Validation Form</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_rating" class="form-label">Rating</label>
+                        <div class="rating-stars mb-2">
+                            <div class="btn-group" role="group">
+                                {% for i in "12345" %}
+                                    <input type="radio" class="btn-check" name="rating" id="rating{{ i }}" value="{{ i }}" {% if forloop.counter == 5 %}checked{% endif %} required>
+                                    <label class="btn btn-outline-warning" for="rating{{ i }}">
+                                        <i class="bi bi-star-fill"></i> {{ i }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <small class="form-text">How would you rate the effectiveness of this practice?</small>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_comments" class="form-label">Comments</label>
+                        <textarea name="comments" id="id_comments" class="form-control" rows="4" required></textarea>
+                        <small class="form-text">Share your thoughts, experiences, or additional information about this practice</small>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="has_used" id="id_has_used">
+                            <label class="form-check-label" for="id_has_used">
+                                I have personally used or observed this practice
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_confirmation" required>
+                            <label class="form-check-label" for="id_confirmation">
+                                I confirm that my validation is based on my knowledge of traditional Basotho farming practices
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Submit Validation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Validation Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <h6>What to Consider:</h6>
+                <ul>
+                    <li>Is this a genuine traditional Basotho practice?</li>
+                    <li>Is the description accurate and complete?</li>
+                    <li>Have you seen or heard of this practice being used?</li>
+                    <li>Is it effective for the stated purpose?</li>
+                    <li>Are the materials and application methods correct?</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Why Validation Matters:</h6>
+                    <p class="mb-0">Your validation helps ensure that only authentic and effective indigenous knowledge is integrated into the FarmLore chatbot, preserving the integrity of Basotho farming traditions.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Verification Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-3">
+                    {% with verification_count=knowledge.verification_count|default:0 %}
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {% widthratio verification_count 5 100 %}%" 
+                         aria-valuenow="{{ verification_count }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="5">
+                        {{ verification_count }}/5
+                    </div>
+                    {% endwith %}
+                </div>
+                <p>
+                    <strong>Current Status:</strong> 
+                    <span class="badge {% if knowledge.is_verified %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                        {{ knowledge.get_verification_status_display }}
+                    </span>
+                </p>
+                <p><strong>Validations received:</strong> {{ knowledge.verification_count }}</p>
+                <p><strong>Validations needed:</strong> 
+                    {% if knowledge.is_verified %}
+                        Verified!
+                    {% else %}
+                        {% with verification_count=knowledge.verification_count|default:0 %}
+                            {{ 5|add:"-verification_count" }} more
+                        {% endwith %}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Custom template filters for Django templates
+    function multiply(value, arg) {
+        return value * arg;
+    }
+    
+    function subtract(value, arg) {
+        return value - arg;
+    }
+    
+    $(document).ready(function() {
+        // Highlight stars on hover
+        $('.btn-outline-warning').hover(
+            function() {
+                var index = $(this).index();
+                $('.btn-outline-warning').each(function(i) {
+                    if (i <= index) {
+                        $(this).addClass('active');
+                    }
+                });
+            },
+            function() {
+                $('.btn-outline-warning').removeClass('active');
+                $('.btn-check:checked').next().addClass('active');
+            }
+        );
+        
+        // Keep stars highlighted after selection
+        $('.btn-check').change(function() {
+            $('.btn-outline-warning').removeClass('active');
+            $(this).next().addClass('active');
+        });
+    });
+</script>
+{% endblock %}

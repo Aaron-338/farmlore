@@ -1,0 +1,280 @@
+{% extends 'community/base.html' %}
+
+{% block title %}Share Indigenous Knowledge - FarmLore Community{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        min-height: 38px;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-text {
+        color: #6c757d;
+    }
+    .required-field::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'community:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Share Knowledge</li>
+            </ol>
+        </nav>
+        <h1 class="display-5">Share Indigenous Knowledge</h1>
+        <p class="lead">Contribute your traditional farming practices to help preserve Basotho indigenous knowledge</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Knowledge Entry Form</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_title" class="form-label required-field">Title</label>
+                        <input type="text" name="title" id="id_title" class="form-control" required>
+                        <small class="form-text">A descriptive title for the practice (e.g., "Ash Application for Pest Control")</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_practice_type" class="form-label required-field">Practice Type</label>
+                        <select name="practice_type" id="id_practice_type" class="form-select" required>
+                            <option value="">Select a practice type</option>
+                            <option value="pest_control">Pest Control</option>
+                            <option value="disease_management">Disease Management</option>
+                            <option value="soil_fertility">Soil Fertility</option>
+                            <option value="water_management">Water Management</option>
+                            <option value="ecological_indicator">Ecological Indicator</option>
+                            <option value="harvest_storage">Harvest & Storage</option>
+                        </select>
+                        <small class="form-text">The category that best describes this practice</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_description" class="form-label required-field">Description</label>
+                        <textarea name="description" id="id_description" class="form-control" rows="5" required></textarea>
+                        <small class="form-text">Detailed description of the practice, including how it works and how to apply it</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_materials" class="form-label required-field">Materials Needed</label>
+                        <select name="materials" id="id_materials" class="form-control select2-multiple" multiple required>
+                            <option value="Wood ash">Wood ash</option>
+                            <option value="Hot chili peppers">Hot chili peppers</option>
+                            <option value="Aloe vera leaves">Aloe vera leaves</option>
+                            <option value="Cattle manure">Cattle manure</option>
+                            <option value="Chicken manure">Chicken manure</option>
+                            <option value="Water">Water</option>
+                            <option value="Spray bottle">Spray bottle</option>
+                            <option value="Mortar and pestle">Mortar and pestle</option>
+                            <option value="Bucket">Bucket</option>
+                            <option value="Shovel">Shovel</option>
+                            <option value="Hoe">Hoe</option>
+                            <option value="Knife">Knife</option>
+                            <option value="Soap">Soap</option>
+                            <option value="Garlic">Garlic</option>
+                            <option value="Onion">Onion</option>
+                        </select>
+                        <small class="form-text">Select all materials needed for this practice (you can add new ones by typing)</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_crops" class="form-label required-field">Applicable Crops</label>
+                        <select name="crops" id="id_crops" class="form-control select2-multiple" multiple required>
+                            <option value="maize">Maize</option>
+                            <option value="beans">Beans</option>
+                            <option value="tomato">Tomato</option>
+                            <option value="potato">Potato</option>
+                            <option value="cabbage">Cabbage</option>
+                            <option value="spinach">Spinach</option>
+                            <option value="sorghum">Sorghum</option>
+                            <option value="wheat">Wheat</option>
+                            <option value="pumpkin">Pumpkin</option>
+                            <option value="onion">Onion</option>
+                            <option value="garlic">Garlic</option>
+                            <option value="carrot">Carrot</option>
+                            <option value="beetroot">Beetroot</option>
+                            <option value="peas">Peas</option>
+                        </select>
+                        <small class="form-text">Select all crops this practice can be applied to</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_pests" class="form-label">Target Pests</label>
+                        <select name="pests" id="id_pests" class="form-control select2-multiple" multiple>
+                            <option value="aphids">Aphids</option>
+                            <option value="spider_mites">Spider Mites</option>
+                            <option value="tomato_hornworm">Tomato Hornworm</option>
+                            <option value="cutworms">Cutworms</option>
+                            <option value="armyworms">Armyworms</option>
+                            <option value="stalk_borer">Stalk Borer</option>
+                            <option value="whiteflies">Whiteflies</option>
+                            <option value="thrips">Thrips</option>
+                            <option value="grasshoppers">Grasshoppers</option>
+                            <option value="beetles">Beetles</option>
+                            <option value="nematodes">Nematodes</option>
+                        </select>
+                        <small class="form-text">Select all pests this practice helps control (leave empty for soil/water practices)</small>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label for="id_seasons" class="form-label required-field">Best Seasons</label>
+                        <select name="seasons" id="id_seasons" class="form-control select2-multiple" multiple required>
+                            <option value="spring">Spring</option>
+                            <option value="summer">Summer</option>
+                            <option value="autumn">Autumn</option>
+                            <option value="winter">Winter</option>
+                            <option value="growing_season">Growing Season</option>
+                            <option value="rainy_season">Rainy Season</option>
+                            <option value="dry_season">Dry Season</option>
+                            <option value="all_year">All Year</option>
+                        </select>
+                        <small class="form-text">Select when this practice is best applied</small>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_confirmation" required>
+                            <label class="form-check-label" for="id_confirmation">
+                                I confirm that this is a traditional Basotho practice that I have knowledge of or experience with
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Submit Knowledge
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Guidance for Contributors</h5>
+            </div>
+            <div class="card-body">
+                <h6>What to Share:</h6>
+                <ul>
+                    <li>Traditional Basotho farming practices</li>
+                    <li>Indigenous pest management methods</li>
+                    <li>Traditional soil fertility techniques</li>
+                    <li>Local ecological indicators</li>
+                    <li>Cultural harvest and storage methods</li>
+                </ul>
+                
+                <h6>Tips for Quality Contributions:</h6>
+                <ul>
+                    <li>Be specific and detailed in your descriptions</li>
+                    <li>Include all materials needed</li>
+                    <li>Specify which crops the practice works best with</li>
+                    <li>Mention any cultural significance</li>
+                    <li>Share your personal experience if you have used this practice</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Verification Process:</h6>
+                    <p class="mb-0">Your contribution will need to be validated by at least 5 community members before it is integrated into the FarmLore chatbot.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Knowledge Keeper Profile</h5>
+            </div>
+            <div class="card-body">
+                {% if user.knowledge_keeper %}
+                    <h6>{{ user.knowledge_keeper.full_name }}</h6>
+                    <p><strong>Village:</strong> {{ user.knowledge_keeper.village }}</p>
+                    <p><strong>District:</strong> {{ user.knowledge_keeper.district }}</p>
+                    <p><strong>Experience:</strong> {{ user.knowledge_keeper.years_experience }} years</p>
+                    <a href="#" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <p>You don't have a Knowledge Keeper profile yet. Please complete your profile to share knowledge.</p>
+                        <a href="#" class="btn btn-primary btn-sm">Create Profile</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Initialize Select2 elements
+        $('.select2-multiple').select2({
+            tags: true,
+            tokenSeparators: [',', ' '],
+            placeholder: "Select or type to add new"
+        });
+        
+        // Handle form submission
+        $('form').on('submit', function(e) {
+            // Prevent default form submission to handle Select2 values properly
+            e.preventDefault();
+            
+            // Show loading state
+            $('button[type="submit"]').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
+            
+            // Get the form
+            var $form = $(this);
+            
+            // Handle Select2 fields
+            $('.select2-multiple').each(function() {
+                var name = $(this).attr('name');
+                var values = $(this).val();
+                
+                // Remove any existing hidden inputs for this field
+                $form.find('input[type="hidden"][name="' + name + '"]').remove();
+                
+                // Add a hidden input for each value
+                if (values && values.length > 0) {
+                    for (var i = 0; i < values.length; i++) {
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: name,
+                            value: values[i]
+                        }).appendTo($form);
+                    }
+                } else {
+                    // Add an empty value to ensure the field is submitted
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: name,
+                        value: ''
+                    }).appendTo($form);
+                }
+            });
+            
+            // Submit the form
+            $form[0].submit();
+        });
+    });
+</script>
+{% endblock %}

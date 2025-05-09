@@ -1,0 +1,120 @@
+{% extends 'community/base.html' %}
+
+{% block title %}Add Regional Observation - FarmLore Community{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'community:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Add Regional Observation</li>
+            </ol>
+        </nav>
+        <h1 class="display-5">Add Regional Observation</h1>
+        <p class="lead">Share your observations about local farming conditions, weather patterns, or pest outbreaks</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Observation Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_title" class="form-label">Title</label>
+                        <input type="text" name="title" id="id_title" class="form-control" required>
+                        <small class="form-text">A brief title for your observation</small>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_description" class="form-label">Description</label>
+                        <textarea name="description" id="id_description" class="form-control" rows="5" required></textarea>
+                        <small class="form-text">Detailed description of what you observed</small>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_observation_type" class="form-label">Observation Type</label>
+                        <select name="observation_type" id="id_observation_type" class="form-select" required>
+                            <option value="pest_outbreak">Pest Outbreak</option>
+                            <option value="disease_occurrence">Disease Occurrence</option>
+                            <option value="ecological_indicator">Ecological Indicator</option>
+                            <option value="weather_pattern">Weather Pattern</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_location" class="form-label">Location</label>
+                        <input type="text" name="location" id="id_location" class="form-control" required>
+                        <small class="form-text">Village, district, or specific area where the observation was made</small>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label for="id_date_observed" class="form-label">Date Observed</label>
+                        <input type="date" name="date_observed" id="id_date_observed" class="form-control" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" id="submit-button" class="btn btn-primary btn-lg">
+                            <i class="bi bi-cloud-upload"></i> Submit Observation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Why Share Observations?</h5>
+            </div>
+            <div class="card-body">
+                <p>Regional observations help other farmers in the community understand local conditions and prepare accordingly.</p>
+                
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Tips for Good Observations:</h6>
+                    <ul class="mb-0">
+                        <li>Be specific about what you observed</li>
+                        <li>Include details about location and timing</li>
+                        <li>Note any unusual patterns or changes</li>
+                        <li>Describe any actions you took in response</li>
+                        <li>Include information about affected crops</li>
+                    </ul>
+                </div>
+                
+                <p class="mb-0">Your observations contribute to a community-wide understanding of agricultural conditions in Lesotho.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize date picker with today's date as default
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var yyyy = today.getFullYear();
+        today = yyyy + '-' + mm + '-' + dd;
+        $('#id_date_observed').val(today);
+        
+        // Add event listener to form submission
+        $('form').on('submit', function() {
+            // Show loading state
+            $('#submit-button').html('<i class="bi bi-spinner-grow spinner-grow-sm"></i> Submitting...').prop('disabled', true);
+            
+            // Allow the form to submit normally
+            return true;
+        });
+    });
+</script>
+{% endblock %}

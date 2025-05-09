@@ -1,0 +1,235 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+<style>
+    .metric-card {
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        margin-bottom: 20px;
+        padding: 15px;
+    }
+    
+    .metric-card h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #333;
+    }
+    
+    .metric-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #447e9b;
+    }
+    
+    .metric-secondary {
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin-bottom: 20px;
+    }
+    
+    .source-breakdown {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .source-item {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+    
+    .source-ollama {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .source-prolog {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+    
+    .source-hybrid {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .source-mock {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .source-cache {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+</style>
+{% endblock %}
+
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; {% trans 'Performance Dashboard' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Performance Dashboard</h1>
+    <p>Real-time monitoring of the Hybrid Engine performance metrics.</p>
+    
+    <div class="stats-grid">
+        <div class="metric-card">
+            <h3>Uptime</h3>
+            <div class="metric-value">{{ metrics.uptime_formatted }}</div>
+            <div class="metric-secondary">Started: {{ start_time }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Total Queries</h3>
+            <div class="metric-value">{{ metrics.queries.total }}</div>
+            <div class="metric-secondary">{{ metrics.queries_per_minute|floatformat:2 }} per minute</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Success Rate</h3>
+            <div class="metric-value">{{ metrics.queries.success_rate|floatformat:2 }}%</div>
+            <div class="metric-secondary">{{ metrics.queries.success }} successful / {{ metrics.queries.fail }} failed</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Cache Performance</h3>
+            <div class="metric-value">{{ metrics.cache.hit_rate|floatformat:2 }}%</div>
+            <div class="metric-secondary">{{ metrics.cache.hits }} hits / {{ metrics.cache.misses }} misses</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Response Time</h3>
+            <div class="metric-value">{{ metrics.response_times.avg|floatformat:4 }}s</div>
+            <div class="metric-secondary">Range: {{ metrics.response_times.min|floatformat:4 }}s - {{ metrics.response_times.max|floatformat:4 }}s</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>LLM Performance</h3>
+            <div class="metric-value">{{ metrics.llm.success_rate|floatformat:2 }}%</div>
+            <div class="metric-secondary">Avg response: {{ metrics.llm.avg_response_time|floatformat:2 }}s</div>
+        </div>
+    </div>
+    
+    <h2>Response Sources</h2>
+    <div class="chart-container">
+        <canvas id="sourcesChart"></canvas>
+    </div>
+    
+    <div class="source-breakdown">
+        {% for source, count in metrics.queries.by_source.items %}
+            <div class="source-item source-{{ source }}">
+                {{ source }}: {{ count }}
+            </div>
+        {% endfor %}
+    </div>
+    
+    <h2>Query Types</h2>
+    <div class="chart-container">
+        <canvas id="queryTypesChart"></canvas>
+    </div>
+    
+    <h2>System Health</h2>
+    <div class="metric-card">
+        <h3>Ollama Service</h3>
+        <div class="metric-value">{{ 'Available' if ollama_available else 'Unavailable' }}</div>
+        <div class="metric-secondary">
+            {% if ollama_available %}
+                {{ ollama_models|length }} model(s) available
+            {% else %}
+                Using fallback responses
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sources Chart
+        const sourcesCtx = document.getElementById('sourcesChart').getContext('2d');
+        const sourcesChart = new Chart(sourcesCtx, {
+            type: 'pie',
+            data: {
+                labels: [{% for source, count in metrics.queries.by_source.items %}'{{ source }}',{% endfor %}],
+                datasets: [{
+                    data: [{% for source, count in metrics.queries.by_source.items %}{{ count }},{% endfor %}],
+                    backgroundColor: [
+                        '#d4edda',  // ollama
+                        '#cce5ff',  // prolog
+                        '#fff3cd',  // hybrid
+                        '#f8d7da',  // mock
+                        '#e2e3e5'   // cache
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Response Sources'
+                    }
+                }
+            }
+        });
+        
+        // Query Types Chart
+        const queryTypesCtx = document.getElementById('queryTypesChart').getContext('2d');
+        const queryTypesChart = new Chart(queryTypesCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for type, count in metrics.queries.by_type.items %}'{{ type }}',{% endfor %}],
+                datasets: [{
+                    label: 'Queries',
+                    data: [{% for type, count in metrics.queries.by_type.items %}{{ count }},{% endfor %}],
+                    backgroundColor: '#447e9b'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Query Types'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Home - FarmLore{% endblock %}
+
+{% block content %}
+<div class="row align-items-center">
+    <div class="col-lg-6">
+        <h1 class="display-4 mb-4">Indigenous Agricultural Knowledge and Farming Wisdom</h1>
+        <p class="lead">
+            Access traditional farming knowledge, pest management techniques, and soil fertility solutions with our AI-powered assistant.
+        </p>
+        <p class="mb-4">
+            FarmLore combines indigenous wisdom with modern technology to provide sustainable farming practices, 
+            pest management methods, and soil fertility techniques suitable for your specific crops and conditions.
+        </p>
+        <div class="d-grid gap-2 d-md-flex">
+            <a href="{% url 'chatbot:chat' %}" class="btn btn-success btn-lg">
+                <i class="fas fa-seedling me-2"></i> Ask FarmLore
+            </a>
+            <a href="{% url 'core:about' %}" class="btn btn-outline-success btn-lg">
+                <i class="fas fa-book me-2"></i> Learn More
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-6 mt-4 mt-lg-0">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Features</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Pest identification based on symptoms and host crops
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Information about indigenous pest management methods
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Indigenous soil fertilization techniques
+                    </li>
+                    <li class="list-group-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Natural language interface powered by AI
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <h2 class="text-center mb-4">How It Works</h2>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-comments text-success" style="font-size: 2rem;"></i>
+                <h5 class="card-title mt-3">Describe Your Needs</h5>
+                <p class="card-text">
+                    Tell our assistant about your crops, farming challenges, or specific questions about traditional practices.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mt-3 mt-md-0">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-search text-success" style="font-size: 2rem;"></i>
+                <h5 class="card-title mt-3">Knowledge Processing</h5>
+                <p class="card-text">
+                    FarmLore analyzes your query using traditional knowledge and modern agricultural science.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mt-3 mt-md-0">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-lightbulb text-success" style="font-size: 2rem;"></i>
+                <h5 class="card-title mt-3">Get Traditional Wisdom</h5>
+                <p class="card-text">
+                    Receive tailored advice based on generations of farming knowledge and sustainable practices.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'community/base.html' %}
+
+{% block title %}Export Knowledge - FarmLore Community{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'community:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Export Knowledge</li>
+            </ol>
+        </nav>
+        <h1 class="display-5">Export Indigenous Knowledge</h1>
+        <p class="lead">Integrate verified indigenous knowledge with the FarmLore chatbot</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Export to Prolog</h5>
+            </div>
+            <div class="card-body">
+                <p>This tool exports all verified indigenous knowledge to a Prolog knowledge base that can be used by the FarmLore chatbot. The exported knowledge will be integrated with the main knowledge base.</p>
+                
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">What Gets Exported:</h6>
+                    <p class="mb-0">Only knowledge entries that have been verified by at least 5 community members will be exported. The export process converts the knowledge to a frame-based representation that matches the structure of the main knowledge base.</p>
+                </div>
+                
+                <div id="export-status" class="d-none alert mb-4"></div>
+                
+                <form id="export-form" method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" id="export-button" class="btn btn-success btn-lg">
+                            <i class="bi bi-download"></i> Export Verified Knowledge to Prolog
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Verified Knowledge Entries</h5>
+            </div>
+            <div class="card-body">
+                {% if verified_entries %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Validations</th>
+                                    <th>Contributor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in verified_entries %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'community:knowledge_detail' entry.id %}">{{ entry.title }}</a>
+                                        </td>
+                                        <td>{{ entry.get_practice_type_display }}</td>
+                                        <td>{{ entry.verification_count }}</td>
+                                        <td>{{ entry.keeper.full_name }}</td>
+                                        <td>
+                                            {% if entry.prolog_name %}
+                                                <span class="badge bg-success">Exported</span>
+                                            {% else %}
+                                                <span class="badge bg-warning text-dark">Pending Export</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <p>No verified knowledge entries found. Knowledge entries need to be validated by at least 5 community members before they can be exported.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Export Process</h5>
+            </div>
+            <div class="card-body">
+                <h6>How It Works:</h6>
+                <ol>
+                    <li>Verified knowledge entries are retrieved from the database</li>
+                    <li>Each entry is converted to a frame-based Prolog representation</li>
+                    <li>The frames are written to a Prolog file (<code>community_kb.pl</code>)</li>
+                    <li>The main knowledge base is updated to include the community knowledge</li>
+                    <li>The FarmLore chatbot can now access and use the indigenous knowledge</li>
+                </ol>
+                
+                <h6 class="mt-4">Frame Structure:</h6>
+                <pre class="bg-light p-3 rounded"><code>frame(practice, [
+    name: practice_name,
+    type: practice_type,
+    controls: [pest1, pest2],
+    description: 'Description text',
+    materials: ['material1', 'material2'],
+    applicable_crops: [crop1, crop2],
+    source: 'Knowledge keeper',
+    verification_count: 5,
+    cultural_context: [basotho]
+]).</code></pre>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Export Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <h2 class="display-6">{{ verified_count }}</h2>
+                        <p>Verified Entries</p>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h2 class="display-6">{{ exported_count }}</h2>
+                        <p>Exported Entries</p>
+                    </div>
+                </div>
+                
+                <div class="progress mb-3">
+                    {% if verified_count > 0 %}
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {% widthratio exported_count verified_count 100 %}%" 
+                             aria-valuenow="{{ exported_count }}" aria-valuemin="0" aria-valuemax="{{ verified_count }}">
+                            {{ exported_count }}/{{ verified_count }}
+                        </div>
+                    {% else %}
+                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0/0</div>
+                    {% endif %}
+                </div>
+                
+                <p><strong>Last Export:</strong> {% if last_export %}{{ last_export|date:"F j, Y H:i" }}{% else %}Never{% endif %}</p>
+                <p><strong>Export Status:</strong> <span id="kb-status">{% if kb_includes_community %}Integrated{% else %}Not Integrated{% endif %}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JavaScript for the export functionality
+    
+    $(document).ready(function() {
+        $('#export-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            $('#export-button').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...');
+            $('#export-status').removeClass('d-none alert-success alert-danger').addClass('alert-info').html('Exporting knowledge to Prolog...');
+            
+            // Send AJAX request
+            $.ajax({
+                url: '{% url "community:export_knowledge" %}',
+                type: 'POST',
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(data) {
+                    if (data.success) {
+                        $('#export-status').removeClass('alert-info alert-danger').addClass('alert-success').html('<i class="bi bi-check-circle"></i> ' + data.message);
+                        $('#kb-status').text('Integrated');
+                        
+                        // Reload the page after a delay to show updated statistics
+                        setTimeout(function() {
+                            location.reload();
+                        }, 3000);
+                    } else {
+                        $('#export-status').removeClass('alert-info alert-success').addClass('alert-danger').html('<i class="bi bi-exclamation-triangle"></i> ' + data.message);
+                        $('#export-button').prop('disabled', false).html('<i class="bi bi-download"></i> Export Verified Knowledge to Prolog');
+                    }
+                },
+                error: function() {
+                    $('#export-status').removeClass('alert-info alert-success').addClass('alert-danger').html('<i class="bi bi-exclamation-triangle"></i> An error occurred during the export process. Please try again.');
+                    $('#export-button').prop('disabled', false).html('<i class="bi bi-download"></i> Export Verified Knowledge to Prolog');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'community/base.html' %}
+
+{% block title %}Review Application - FarmLore Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'community:admin_application_list' %}">Applications</a></li>
+                <li class="breadcrumb-item active">Review Application</li>
+            </ol>
+        </nav>
+        <h1 class="mb-3">Review Knowledge Keeper Application</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Application Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">User:</dt>
+                    <dd class="col-sm-9">{{ application.user.username }} ({{ application.user.email }})</dd>
+                    
+                    <dt class="col-sm-3">Village:</dt>
+                    <dd class="col-sm-9">{{ application.village }}</dd>
+                    
+                    <dt class="col-sm-3">District:</dt>
+                    <dd class="col-sm-9">{{ application.district }}</dd>
+                    
+                    <dt class="col-sm-3">Experience:</dt>
+                    <dd class="col-sm-9">{{ application.years_experience }} years</dd>
+                    
+                    <dt class="col-sm-3">Specialization:</dt>
+                    <dd class="col-sm-9">{{ application.specialization|default:"None specified" }}</dd>
+                    
+                    <dt class="col-sm-3">Biography:</dt>
+                    <dd class="col-sm-9">{{ application.bio|linebreaks }}</dd>
+                    
+                    <dt class="col-sm-3">Reason:</dt>
+                    <dd class="col-sm-9">{{ application.reason|linebreaks }}</dd>
+                    
+                    <dt class="col-sm-3">Applied on:</dt>
+                    <dd class="col-sm-9">{{ application.created_at }}</dd>
+                    
+                    <dt class="col-sm-3">Status:</dt>
+                    <dd class="col-sm-9">
+                        {% if application.status == 'pending' %}
+                        <span class="badge bg-warning">Pending</span>
+                        {% elif application.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                        {% elif application.status == 'rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </dd>
+                    
+                    {% if application.reviewed_by %}
+                    <dt class="col-sm-3">Reviewed by:</dt>
+                    <dd class="col-sm-9">{{ application.reviewed_by.username }} on {{ application.updated_at }}</dd>
+                    {% endif %}
+                    
+                    {% if application.review_notes %}
+                    <dt class="col-sm-3">Review notes:</dt>
+                    <dd class="col-sm-9">{{ application.review_notes|linebreaks }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+        
+        {% if application.status == 'pending' %}
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Review Decision</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-4">
+                        <label for="notes" class="form-label">Review Notes (optional):</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+                        <small class="form-text text-muted">These notes will be visible to administrators only.</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Approve Application
+                        </button>
+                        <button type="submit" name="action" value="reject" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> Reject Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+            <div class="card-body">
+                <dl>
+                    <dt>Username:</dt>
+                    <dd>{{ application.user.username }}</dd>
+                    
+                    <dt>Email:</dt>
+                    <dd>{{ application.user.email }}</dd>
+                    
+                    <dt>Name:</dt>
+                    <dd>{{ application.user.get_full_name|default:"Not provided" }}</dd>
+                    
+                    <dt>Joined:</dt>
+                    <dd>{{ application.user.date_joined|date:"M d, Y" }}</dd>
+                </dl>
+                
+                <a href="{% url 'admin:auth_user_change' application.user.id %}" class="btn btn-outline-secondary btn-sm" target="_blank">
+                    <i class="bi bi-pencil"></i> Edit User in Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

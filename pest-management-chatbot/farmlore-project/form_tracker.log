@@ -1,0 +1,7 @@
+2025-04-25 00:21:17,432 - INFO - Starting form tracker. Current entries in database: 15
+2025-04-25 00:21:17,433 - INFO - Entry IDs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+2025-04-25 00:21:17,435 - INFO - === FORM SUBMISSION TRACKER STARTED ===
+2025-04-25 00:21:17,436 - INFO - This script will monitor all form submissions in real-time.
+2025-04-25 00:21:17,437 - INFO - Press Ctrl+C to stop monitoring.
+2025-04-25 00:21:17,438 - INFO - 
+2025-04-25 00:21:17,439 - INFO - Starting continuous monitoring for new entries...

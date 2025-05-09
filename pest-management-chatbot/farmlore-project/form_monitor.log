@@ -1,0 +1,19 @@
+2025-04-25 00:12:33,831 - INFO - Initial state: 9 entries
+2025-04-25 00:12:33,832 - INFO - ID: 1, Title: Test Knowledge Entry 20250424230604, User: testuser
+2025-04-25 00:12:33,832 - INFO - ID: 2, Title: Test Knowledge Entry 1745538178, User: testuser
+2025-04-25 00:12:33,833 - INFO - ID: 3, Title: Test Entry by Poelo - 1745538656, User: Poelo
+2025-04-25 00:12:33,833 - INFO - ID: 4, Title: Test Entry by Katse at 00:05:19, User: Katse
+2025-04-25 00:12:33,833 - INFO - ID: 5, Title: Test Entry by Mpho at 00:05:19, User: Mpho
+2025-04-25 00:12:33,834 - INFO - ID: 6, Title: Test Entry by admin at 00:05:19, User: admin
+2025-04-25 00:12:33,834 - INFO - ID: 7, Title: Test Entry by testuser at 00:05:19, User: testuser
+2025-04-25 00:12:33,834 - INFO - ID: 8, Title: Test Entry by Mohau at 00:05:19, User: Mohau
+2025-04-25 00:12:33,834 - INFO - ID: 9, Title: Test Entry by Poelo at 00:05:19, User: Poelo
+2025-04-25 00:12:33,835 - INFO - Monitoring started. Watching for new knowledge entries...
+2025-04-25 00:12:33,835 - INFO - Press Ctrl+C to stop monitoring.
+2025-04-25 00:18:19,472 - INFO - Found 6 new entries since script started
+2025-04-25 00:18:19,489 - INFO - New entry: ID: 10, Title: Debug Form Test - 1745540297 - Katse, User: Katse
+2025-04-25 00:18:19,508 - INFO - New entry: ID: 11, Title: Debug Form Test - 1745540297 - Mpho, User: Mpho
+2025-04-25 00:18:19,526 - INFO - New entry: ID: 12, Title: Debug Form Test - 1745540297 - admin, User: admin
+2025-04-25 00:18:19,542 - INFO - New entry: ID: 13, Title: Debug Form Test - 1745540297 - testuser, User: testuser
+2025-04-25 00:18:19,555 - INFO - New entry: ID: 14, Title: Debug Form Test - 1745540297 - Mohau, User: Mohau
+2025-04-25 00:18:19,566 - INFO - New entry: ID: 15, Title: Debug Form Test - 1745540297 - Poelo, User: Poelo

@@ -1,0 +1,348 @@
+{% extends 'community/base.html' %}
+{% load i18n %}
+
+{% block title %}Dashboard - FarmLore Community{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="display-5">Indigenous Knowledge Dashboard</h1>
+        <p class="lead">Explore and contribute to the Basotho farming knowledge repository</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'community:knowledge_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Share Knowledge
+        </a>
+        <a href="{% url 'community:observation_create' %}" class="btn btn-outline-primary">
+            <i class="bi bi-eye"></i> Report Observation
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Knowledge Entries</h5>
+                <h2 class="display-4">{{ knowledge_entries.count }}</h2>
+                <p class="card-text">Indigenous farming practices shared</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Verified Knowledge</h5>
+                <h2 class="display-4">{{ verified_count }}</h2>
+                <p class="card-text">Practices verified by the community</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Pending Verification</h5>
+                <h2 class="display-4">{{ pending_count }}</h2>
+                <p class="card-text">Practices awaiting community validation</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Knowledge Contributions</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" id="show-all-btn">All</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="show-pending-btn">Pending</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="show-verified-btn">Verified</button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if knowledge_entries %}
+                    <div id="entries-container">
+                        {% for knowledge in knowledge_entries %}
+                            <div class="knowledge-item mb-4 entry-item {% if knowledge.verification_status == 'pending' %}pending-entry{% else %}verified-entry{% endif %}">
+                                <h5>
+                                    <a href="{% url 'community:knowledge_detail' knowledge.pk %}">{{ knowledge.title }}</a>
+                                    <span class="badge indigenous-badge">{{ knowledge.get_practice_type_display }}</span>
+                                    {% if knowledge.verification_status == 'verified' %}
+                                        <span class="badge bg-success">Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </h5>
+                                <p>{{ knowledge.description|truncatewords:30 }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <div class="keeper-info">
+                                        Shared by {{ knowledge.keeper.full_name }} from {{ knowledge.keeper.village }}
+                                    </div>
+                                    <div class="validation-count">
+                                        <i class="bi bi-check-circle"></i> {{ knowledge.verification_count }} validations
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">&laquo; First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <p>No knowledge entries have been shared yet. Be the first to contribute!</p>
+                        <a href="{% url 'community:knowledge_create' %}" class="btn btn-primary">Share Knowledge</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- User's own contributions -->
+        {% if user.is_authenticated and user_entries %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Your Knowledge Contributions</h5>
+            </div>
+            <div class="card-body">
+                {% for knowledge in user_entries %}
+                    <div class="knowledge-item mb-3">
+                        <h5>
+                            <a href="{% url 'community:knowledge_detail' knowledge.pk %}">{{ knowledge.title }}</a>
+                            <span class="badge indigenous-badge">{{ knowledge.get_practice_type_display }}</span>
+                            {% if knowledge.verification_status == 'verified' %}
+                                <span class="badge bg-success">Verified</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </h5>
+                        <p>{{ knowledge.description|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between">
+                            <div class="date-info">
+                                <i class="bi bi-calendar"></i> {{ knowledge.date_added|date:"M d, Y" }}
+                            </div>
+                            <div class="validation-count">
+                                <i class="bi bi-check-circle"></i> {{ knowledge.verification_count }} validations
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Entries pending validation -->
+        {% if user.is_authenticated and pending_validation %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Entries Needing Your Validation</h5>
+            </div>
+            <div class="card-body">
+                {% for knowledge in pending_validation %}
+                    <div class="knowledge-item mb-3">
+                        <h5>
+                            <a href="{% url 'community:knowledge_detail' knowledge.pk %}">{{ knowledge.title }}</a>
+                            <span class="badge indigenous-badge">{{ knowledge.get_practice_type_display }}</span>
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        </h5>
+                        <p>{{ knowledge.description|truncatewords:20 }}</p>
+                        <div class="d-flex justify-content-between">
+                            <div class="keeper-info">
+                                Shared by {{ knowledge.keeper.full_name }} from {{ knowledge.keeper.village }}
+                            </div>
+                            <a href="{% url 'community:validation_create' knowledge.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-check-circle"></i> Validate
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Recent Regional Observations -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Observations</h5>
+                <a href="{% url 'community:observation_create' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-plus-circle"></i> Add
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_observations %}
+                    {% for observation in recent_observations %}
+                        <div class="observation-item mb-3">
+                            <h6>{{ observation.title }}</h6>
+                            <div class="d-flex justify-content-between">
+                                <span class="badge bg-info">{{ observation.get_observation_type_display }}</span>
+                                <small>{{ observation.date_observed|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="small text-muted mt-1">{{ observation.description|truncatewords:15 }}</p>
+                            <div class="d-flex justify-content-between">
+                                <small>Location: {{ observation.location }}</small>
+                                <small>By: {{ observation.observer.username }}</small>
+                            </div>
+                        </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">No regional observations have been reported yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if user.is_authenticated and not user.knowledge_keeper %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Become a Knowledge Keeper</h5>
+            </div>
+            <div class="card-body">
+                <p>Share your indigenous farming knowledge with the community by becoming a knowledge keeper.</p>
+                <p>Knowledge keepers contribute valuable traditional practices and wisdom that help preserve agricultural heritage.</p>
+                <div class="d-grid">
+                    <a href="{% url 'community:apply_knowledge_keeper' %}" class="btn btn-primary">Apply Now</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Top Contributors</h5>
+            </div>
+            <div class="card-body">
+                {% if top_contributors %}
+                    <ul class="list-group list-group-flush">
+                        {% for keeper in top_contributors %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ keeper.full_name }} from {{ keeper.village }}
+                                <span class="badge bg-primary rounded-pill">{{ keeper.entry_count }} entries</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No contributors yet.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if not observations_reported %}
+        <div class="alert alert-info">
+            {% translate "No observations reported yet. Be the first to contribute!" %}
+        </div>
+        {% endif %}
+
+        {% if user.is_superuser %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>{% translate "Export Knowledge" %}</h5>
+            </div>
+            <div class="card-body">
+                <p>{% translate "Export verified indigenous knowledge to Prolog format for use in the expert system." %}</p>
+                <a href="{% url 'community:export_knowledge' %}" class="btn btn-success">
+                    <i class="fas fa-download"></i> {% translate "Export Knowledge" %}
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Check if there's a success message indicating a new entry was added
+        if ($('.alert-success').length > 0 || window.location.search.includes('new_entry')) {
+            // Scroll to the top to ensure the message is visible
+            window.scrollTo(0, 0);
+            
+            // Force a refresh of the page data to ensure latest entries are shown
+            if (!window.location.search.includes('refreshed')) {
+                // Only refresh once to avoid infinite refresh loop
+                setTimeout(function() {
+                    window.location.href = window.location.pathname + '?refreshed=true';
+                }, 100);
+            }
+            
+            // Highlight the first entry (newest) with a subtle animation
+            setTimeout(function() {
+                $('.entry-item:first').addClass('highlight-entry');
+            }, 500);
+        }
+        
+        // Filter buttons functionality
+        $('#show-all-btn').click(function() {
+            $(this).addClass('active').siblings().removeClass('active');
+            $('.entry-item').show();
+        });
+        
+        $('#show-pending-btn').click(function() {
+            $(this).addClass('active').siblings().removeClass('active');
+            $('.entry-item').hide();
+            $('.pending-entry').show();
+        });
+        
+        $('#show-verified-btn').click(function() {
+            $(this).addClass('active').siblings().removeClass('active');
+            $('.entry-item').hide();
+            $('.verified-entry').show();
+        });
+    });
+</script>
+<style>
+    /* Animation for highlighting new entries */
+    @keyframes highlight {
+        0% { background-color: rgba(255, 193, 7, 0.1); }
+        50% { background-color: rgba(255, 193, 7, 0.3); }
+        100% { background-color: rgba(255, 193, 7, 0.1); }
+    }
+    
+    .highlight-entry {
+        animation: highlight 2s ease-in-out 3;
+    }
+    
+    /* Styling for filter buttons */
+    .btn-group .btn.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+</style>
+{% endblock %}
