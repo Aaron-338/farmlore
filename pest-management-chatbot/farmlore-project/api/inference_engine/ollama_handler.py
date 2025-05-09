@@ -202,10 +202,20 @@ class OllamaHandler:
         self.chat_circuit = CircuitBreaker()
         self.tags_circuit = CircuitBreaker()
         
-        # Initialize cache
-        self.response_cache = ConcurrentCache(max_size=500)
+        # Initialize cache settings
+        self.cache_ttl = int(os.environ.get('OLLAMA_CACHE_TTL', 3600 * 24)) # Default 24 hours
+        self.max_semantic_cache_size = int(os.environ.get('OLLAMA_MAX_SEMANTIC_CACHE', 200))
+        
+        # Initialize cache storage and stats
+        self.response_cache = ConcurrentCache(max_size=500) # For exact matches
+        self.semantic_cache = [] # Initialize as empty list for semantic matches
+        self.cache_hits = 0
+        self.semantic_cache_hits = 0
+        self.cache_misses = 0
+        
         self.is_available = False
         self._model_info = None
+        self.last_success_time = None # Track last successful operation
         
         # Thread-safe flag to track initialization status
         self._initialization_complete = threading.Event()
@@ -852,15 +862,6 @@ class OllamaHandler:
                     if cleaned_response and len(cleaned_response) > 10:
                         # Add to exact match cache with timestamp
                         self.response_cache.put(cache_key, (cleaned_response, datetime.now()))
-                        
-                        # Add to semantic cache
-                        self.semantic_cache.append((prompt, cleaned_response, datetime.now()))
-                        
-                        # Trim semantic cache if it exceeds the maximum size
-                        if len(self.semantic_cache) > self.max_semantic_cache_size:
-                            # Sort by timestamp (newest first) and keep only max size
-                            self.semantic_cache.sort(key=lambda x: x[2], reverse=True)
-                            self.semantic_cache = self.semantic_cache[:self.max_semantic_cache_size]
                         
                         # Save cache to disk periodically
                         if random.random() < 0.05:  # 5% chance to save on each successful request

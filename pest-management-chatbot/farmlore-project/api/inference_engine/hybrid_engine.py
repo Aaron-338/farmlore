@@ -118,60 +118,39 @@ class HybridEngine:
         # When using Prolog as primary, determine if this query should use Ollama
         if self.use_prolog_as_primary and self.use_ollama and self.ollama_for_complex_only:
             # Determine if this is a complex query that needs Ollama
-            should_use_ollama = self._should_use_ollama_for_query(query_type, params)
+            should_use_ollama_for_this_specific_query = self._should_use_ollama_for_query(query_type, params)
             
-            # Override use_ollama flag temporarily for this query
-            original_use_ollama = self.use_ollama
-            self.use_ollama = should_use_ollama
-            
+            logging.info(f"[QUERY_METHOD] Decision for query_type '{query_type}': attempt_ollama_call = {should_use_ollama_for_this_specific_query}")
+
             try:
-                # Process the query with the appropriate engine
-                result = self._process_query_by_type(query_type, params)
-                
-                # Add source information to indicate which engine was used
-                if "source" not in result:
-                    result["source"] = "ollama" if should_use_ollama else "prolog"
-                
-                # Restore original setting
-                self.use_ollama = original_use_ollama
+                # Process the query, passing the decision explicitly
+                result = self._process_query_by_type(query_type, params, attempt_ollama_call=should_use_ollama_for_this_specific_query)
                 
                 # Cache this query-response pair if successful
-                if user_query and "response" in result and len(result["response"]) > 10:
+                if user_query and "response" in result and len(result["response"]) > 10 and result.get("source") != "cache": # Avoid re-caching cache hits
                     self.similar_query_detector.add_query(user_query, result["response"])
                     
                 return result
             except Exception as e:
-                # Restore original setting in case of error
-                self.use_ollama = original_use_ollama
                 logging.error(f"Error processing query: {str(e)}")
                 return {
                     "error": f"Error processing query: {str(e)}",
                     "response": "I encountered an error while processing your query. Please try again or rephrase your question."
                 }
         else:
-            # Handle based on query type (original behavior)
+            # Handle based on query type (original behavior - assumes Ollama should be tried if available and enabled globally)
+            # Determine if Ollama should be attempted based on global settings
+            should_attempt_ollama = self.use_ollama # Use the global setting
+            logging.info(f"[QUERY_METHOD] Not in Prolog-primary mode. Query_type '{query_type}'. attempt_ollama_call = {should_attempt_ollama}")
             try:
-                result = None
-                
-                if query_type == "pest_identification":
-                    result = self._process_pest_identification(params)
-                elif query_type == "control_methods":
-                    result = self._process_control_methods(params)
-                elif query_type == "crop_pests":
-                    result = self._process_crop_pests(params)
-                elif query_type == "indigenous_knowledge":
-                    result = self._process_indigenous_knowledge(params)
-                elif query_type == "general_query":
-                    result = self._process_general_query(params)
-                else:
-                    result = {"error": "Unknown query type"}
+                # Call _process_query_by_type, passing the decision
+                result = self._process_query_by_type(query_type, params, attempt_ollama_call=should_attempt_ollama)
                 
                 # Cache this query-response pair if successful
-                if user_query and "response" in result and len(result["response"]) > 10:
+                if user_query and "response" in result and len(result["response"]) > 10 and result.get("source") != "cache":
                     self.similar_query_detector.add_query(user_query, result["response"])
                     
                 return result
-                
             except Exception as e:
                 logging.error(f"Error processing query: {str(e)}")
                 return {
@@ -226,45 +205,44 @@ class HybridEngine:
         ollama_available = False
         if self.ollama_handler:
             try:
-                # Only check if Ollama is available if we're considering using it
-                # This avoids unnecessary API calls for simple queries
-                if high_value_llm_queries or (is_complex_query and has_llm_keywords):
-                    ollama_available = self.ollama_handler.is_available()
+                # Simplified check: just see if handler thinks it's available.
+                # The decision to USE it is separate.
+                ollama_available = self.ollama_handler.is_available
             except:
                 ollama_available = False
         
-        # If Ollama is not available, always use Prolog
+        # If Ollama is not technically available, don't attempt to use it
         if not ollama_available:
-            return False
+            return False # Cannot use Ollama if it's not working
             
-        # For resource-constrained systems, be very selective about using Ollama
-        # Only use it for specifically designated high-value LLM queries
-        if query_type in high_value_llm_queries:
+        # Logic based on query type (assuming Ollama IS available)
+        if query_type == "general_query": 
+            return True # Always TRY Ollama for general query if it's available
+        elif query_type in high_value_llm_queries:
             return True
         elif query_type in prolog_suitable_queries:
-            # Even for Prolog-suitable queries, only use LLM if it's both complex AND has LLM keywords
-            # This is more restrictive than the previous implementation
+            # Only use LLM for specific prolog types if complex AND has keywords
             return is_complex_query and has_llm_keywords
         else:
-            # For unknown query types, default to Prolog unless it's clearly a complex query
+            # For unknown query types, default to Prolog unless complex
             return is_complex_query and has_llm_keywords and len(message) > 50
     
-    def _process_query_by_type(self, query_type: str, params: Dict) -> Dict[str, Any]:
-        """Process a query based on its type"""
+    def _process_query_by_type(self, query_type: str, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
+        """Process a query based on its type, honouring attempt_ollama_call flag."""
         if query_type == "pest_identification":
-            return self._process_pest_identification(params)
+            return self._process_pest_identification(params, attempt_ollama_call=attempt_ollama_call)
         elif query_type == "control_methods":
-            return self._process_control_methods(params)
+            return self._process_control_methods(params, attempt_ollama_call=attempt_ollama_call)
         elif query_type == "crop_pests":
-            return self._process_crop_pests(params)
+            return self._process_crop_pests(params, attempt_ollama_call=attempt_ollama_call)
         elif query_type == "indigenous_knowledge":
-            return self._process_indigenous_knowledge(params)
+            return self._process_indigenous_knowledge(params, attempt_ollama_call=attempt_ollama_call)
         elif query_type == "general_query":
-            return self._process_general_query(params)
+            return self._process_general_query(params, attempt_ollama_call=attempt_ollama_call)
         else:
             return {"error": "Unknown query type"}
     
-    def _process_pest_identification(self, params: Dict) -> Dict[str, Any]:
+    def _process_pest_identification(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
         """Process pest identification queries using Prolog and/or Ollama."""
         user_query = params.get("query", "")
         pest_name = params.get("pest") # Extracted by view
@@ -302,24 +280,12 @@ class HybridEngine:
             # For now, this path will likely lead to LLM or generic fallback
             logging.info("No specific pest name provided for Prolog lookup in pest identification.")
 
-        # Decide if we need to use Ollama
-        # (self.use_ollama is the original flag, not the per-query one for prolog-primary mode)
-        # If prolog found substantial data AND we are not in a mode that forces ollama for this query type
-        # (e.g. complex query as per _should_use_ollama_for_query) we might return prolog data directly.
-        # This logic needs refinement based on ollama_for_complex_only and _should_use_ollama_for_query.
-        
-        # For now, let's assume if we have prolog_data_found, we use it. 
-        # If not, or if ollama is generally enabled, we proceed to ollama.
-        
-        if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("pest_identification", params)):
-            # If Prolog found data and Ollama is not strictly needed for this query type
-            logging.info("Sufficient data found in Prolog for pest identification. Formatting response.")
-            response_text = "\n".join(prolog_info_parts)
-            return {"response": response_text, "source": "prolog"}
+        # Decision logic simplified: If Prolog data insufficient OR ollama is requested, try Ollama.
+        prolog_sufficient = prolog_data_found # Simple check for now
 
-        # If Prolog data is not enough, or Ollama is indicated, or it's the primary engine
-        if self.use_ollama and self.ollama_handler:
-            logging.info("Using Ollama for pest identification.")
+        if (not prolog_sufficient or attempt_ollama_call) and self.ollama_handler:
+             # The original check `if self.use_ollama and self.ollama_handler:` is replaced by checking the passed flag
+            logging.info(f"[PEST_ID] Using Ollama for pest identification (prolog_sufficient={prolog_sufficient}, attempt_ollama_call={attempt_ollama_call}).")
             # Prepare context for Ollama, potentially including Prolog findings
             ollama_context = ""
             if prolog_data_found:
@@ -349,16 +315,17 @@ class HybridEngine:
 
                 return {"response": final_response, "source": "ollama"}
             else:
-                logging.warning("Ollama returned empty response for pest identification.")
+                logging.warning("[PEST_ID] Ollama returned empty response.")
         
-        # Fallback if Prolog didn't yield enough and Ollama failed or is disabled
-        if prolog_data_found: # At least return what prolog found
+        # Fallback logic
+        if prolog_data_found:
+             logging.info("[PEST_ID] Ollama not used or failed; returning specific Prolog data.")
              return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
-        logging.info("Using mock response for pest identification as other methods failed.")
-        return self._mock_pest_identification(params) # Fallback to mock
+        logging.info("[PEST_ID] Using mock response as other methods failed.")
+        return self._mock_pest_identification(params)
     
-    def _process_control_methods(self, params: Dict) -> Dict[str, Any]:
+    def _process_control_methods(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
         """Process queries for pest control methods."""
         user_query = params.get("query", "")
         pest_name = params.get("pest")
@@ -403,14 +370,10 @@ class HybridEngine:
         else:
             logging.info("No specific pest name provided for Prolog lookup in control methods.")
 
-        # Decision logic similar to _process_pest_identification
-        if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("pest_management", params)):
-            logging.info("Sufficient data found in Prolog for control methods. Formatting response.")
-            response_text = "\n".join(prolog_info_parts)
-            return {"response": response_text, "source": "prolog"}
+        prolog_sufficient = prolog_data_found # Simple check
 
-        if self.use_ollama and self.ollama_handler:
-            logging.info("Using Ollama for control methods.")
+        if (not prolog_sufficient or attempt_ollama_call) and self.ollama_handler:
+            logging.info(f"[CONTROL_METHODS] Using Ollama (prolog_sufficient={prolog_sufficient}, attempt_ollama_call={attempt_ollama_call}).")
             ollama_context = user_query
             if prolog_data_found:
                 ollama_context = "Based on our knowledge base for " + pest_name + ":\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking for control methods: " + user_query
@@ -430,15 +393,16 @@ class HybridEngine:
             if llm_response and llm_response.strip():
                 return {"response": llm_response, "source": "ollama"}
             else:
-                logging.warning("Ollama returned empty response for control methods.")
+                logging.warning("[CONTROL_METHODS] Ollama returned empty response.")
         
         if prolog_data_found:
+            logging.info("[CONTROL_METHODS] Ollama not used or failed; returning specific Prolog data.")
             return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
-        logging.info("Using mock response for control methods as other methods failed.")
+        logging.info("[CONTROL_METHODS] Using mock response as other methods failed.")
         return self._mock_control_methods(params)
     
-    def _process_crop_pests(self, params: Dict) -> Dict[str, Any]:
+    def _process_crop_pests(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
         """Process queries for pests affecting specific crops."""
         user_query = params.get("query", "")
         crop_name = params.get("crop")
@@ -470,13 +434,10 @@ class HybridEngine:
         else:
             logging.info("No specific crop name provided for Prolog lookup in crop pests.")
 
-        if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("crop_pests", params)):
-            logging.info("Sufficient data found in Prolog for crop pests. Formatting response.")
-            response_text = "\n".join(prolog_info_parts)
-            return {"response": response_text, "source": "prolog"}
-
-        if self.use_ollama and self.ollama_handler:
-            logging.info("Using Ollama for crop pests.")
+        prolog_sufficient = prolog_data_found
+        
+        if (not prolog_sufficient or attempt_ollama_call) and self.ollama_handler:
+            logging.info(f"[CROP_PESTS] Using Ollama (prolog_sufficient={prolog_sufficient}, attempt_ollama_call={attempt_ollama_call}).")
             ollama_context = user_query
             if prolog_data_found:
                 ollama_context = f"According to our knowledge base, {crop_name} can be affected by: {', '.join(pest_list_for_ollama)}.\n\nUser is asking: {user_query}"
@@ -495,15 +456,16 @@ class HybridEngine:
             if llm_response and llm_response.strip():
                 return {"response": llm_response, "source": "ollama"}
             else:
-                logging.warning("Ollama returned empty response for crop pests.")
+                logging.warning("[CROP_PESTS] Ollama returned empty response.")
         
         if prolog_data_found:
+            logging.info("[CROP_PESTS] Ollama not used or failed; returning specific Prolog data.")
             return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
-        logging.info("Using mock response for crop pests as other methods failed.")
+        logging.info("[CROP_PESTS] Using mock response as other methods failed.")
         return self._mock_crop_pests(params)
     
-    def _process_indigenous_knowledge(self, params: Dict) -> Dict[str, Any]:
+    def _process_indigenous_knowledge(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
         """Process queries about indigenous knowledge."""
         user_query = params.get("query", "")
         practice_name = params.get("practice")
@@ -549,13 +511,10 @@ class HybridEngine:
                 elif prolog_search_result.get('pest_found'):
                      prolog_info_parts.append("Found pest-related information that might involve indigenous practices. Please ask specifically about a practice.")
 
-        if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("indigenous_knowledge", params)):
-            logging.info("Sufficient data found in Prolog for indigenous knowledge. Formatting response.")
-            response_text = "\n".join(prolog_info_parts)
-            return {"response": response_text, "source": "prolog"}
+        prolog_sufficient = prolog_data_found
 
-        if self.use_ollama and self.ollama_handler:
-            logging.info("Using Ollama for indigenous knowledge.")
+        if (not prolog_sufficient or attempt_ollama_call) and self.ollama_handler:
+            logging.info(f"[INDIGENOUS] Using Ollama (prolog_sufficient={prolog_sufficient}, attempt_ollama_call={attempt_ollama_call}).")
             ollama_context = user_query
             if prolog_data_found:
                 ollama_context = "Our knowledge base contains the following on this topic:\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking: " + user_query
@@ -575,21 +534,22 @@ class HybridEngine:
             if llm_response and llm_response.strip():
                 return {"response": llm_response, "source": "ollama"}
             else:
-                logging.warning("Ollama returned empty response for indigenous knowledge.")
+                logging.warning("[INDIGENOUS] Ollama returned empty response.")
         
         if prolog_data_found:
+            logging.info("[INDIGENOUS] Ollama not used or failed; returning specific Prolog data.")
             return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
 
-        logging.info("Using mock response for indigenous knowledge as other methods failed.")
+        logging.info("[INDIGENOUS] Using mock response as other methods failed.")
         return self._mock_indigenous_knowledge(params)
     
-    def _process_general_query(self, params: Dict) -> Dict[str, Any]:
-        """Process general queries, trying Prolog KB search first, then Ollama."""
+    def _process_general_query(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
+        """Process general queries, trying Prolog KB search first, then Ollama if attempt_ollama_call is True."""
         user_query = params.get("query", "")
         prolog_info_parts = []
         prolog_data_found = False
 
-        logging.info(f"Attempting general KB search with PrologService for: {user_query}")
+        logging.info(f"[GENERAL_QUERY] Attempting general KB search with PrologService for: {user_query}")
         prolog_search_result = self.prolog_service.search_prolog_kb(user_query)
 
         if prolog_search_result and not prolog_search_result.get('generic_response'):
@@ -617,21 +577,17 @@ class HybridEngine:
                 if p_info.get('type'): prolog_info_parts.append(f"  Type: {p_info['type']}")
                 if p_info.get('controls'): prolog_info_parts.append(f"  Controls: {', '.join(p_info['controls'])}")
             else:
-                # search_prolog_kb returned something but not pest or practice, which is unusual for its current design
-                prolog_data_found = False # Treat as not found for specific formatting
-                logging.info("Prolog search_prolog_kb returned non-generic but unhandled result.")
+                prolog_data_found = False
+                logging.info("[GENERAL_QUERY] Prolog search_prolog_kb returned non-generic but unhandled result.")
         else:
-            logging.info("No specific information found by prolog_service.search_prolog_kb.")
+            logging.info("[GENERAL_QUERY] No specific information found by prolog_service.search_prolog_kb.")
 
-        # Decision logic
-        if prolog_data_found and not (self.use_ollama and self._should_use_ollama_for_query("general_query", params)):
-            logging.info("Sufficient specific data found in Prolog via general search. Formatting response.")
-            response_text = "\n".join(prolog_info_parts)
-            return {"response": response_text, "source": "prolog"}
-
-        # If Prolog data is not enough, or Ollama is indicated, or it's the primary engine for general queries
-        if self.use_ollama and self.ollama_handler:
-            logging.info("Using Ollama for general query.")
+        # Log the state right before the decision
+        logging.info(f"[GENERAL_QUERY_CHECK] Checking Ollama condition: attempt_ollama_call = {attempt_ollama_call}, self.ollama_handler is None = {self.ollama_handler is None}")
+        
+        # Use the passed flag to decide whether to try Ollama.
+        if attempt_ollama_call and self.ollama_handler:
+            logging.info("[GENERAL_QUERY] Using Ollama for general query.") # THIS LOG IS KEY
             ollama_context = user_query
             if prolog_data_found: # Prepend any specific findings from KB search
                 ollama_context = "Based on our knowledge base:\n" + "\n".join(prolog_info_parts) + "\n\nUser is asking: " + user_query
@@ -647,17 +603,18 @@ class HybridEngine:
             )
 
             if llm_response and llm_response.strip():
+                logging.info(f"[GENERAL_QUERY] Ollama returned a response: {llm_response[:100]}...")
                 return {"response": llm_response, "source": "ollama"}
             else:
-                logging.warning("Ollama returned empty response for general query.")
+                logging.warning("[GENERAL_QUERY] Ollama returned empty or whitespace response.")
         
-        # Fallback if Prolog didn't yield specific info and Ollama failed or is disabled
-        if prolog_data_found: # Return what little prolog might have found (e.g. partial search result)
-             return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
+        # Fallback if Ollama was not used, or failed, or returned empty.
+        # If Prolog found something specific earlier, return that.
+        if prolog_data_found:
+            logging.info("[GENERAL_QUERY] Ollama not used or failed; returning specific Prolog data.")
+            return {"response": "\n".join(prolog_info_parts), "source": "prolog_partial"}
         
-        logging.info("Using default/mock response for general query as other methods failed.")
-        # The original mock for general query was in HybridEngine._mock_general_query, which is not defined.
-        # We should return a generic message or use a generic mock if available.
+        logging.info("[GENERAL_QUERY] Using default/fallback response as other methods failed.")
         return {
             "response": "I'm sorry, I couldn't find specific information for your query. Could you try rephrasing or asking about a specific pest, crop, or farming practice?",
             "source": "fallback"

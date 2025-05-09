@@ -2,6 +2,12 @@
 
 echo "[START_WEB] Starting web service initialization..."
 
+# Step 0: Clean __pycache__ directories and .pyc files
+echo "[START_WEB] Cleaning Python cache files..."
+find /app -type d -name "__pycache__" -exec rm -r {} +
+find /app -type f -name "*.pyc" -delete
+echo "[START_WEB] Python cache files cleaned."
+
 # Step 1: Initialize Ollama Models
 echo "[START_WEB] Running Ollama model initialization script..."
 /app/init_ollama_models.sh
