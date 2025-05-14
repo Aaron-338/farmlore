@@ -4,6 +4,10 @@
 % This file contains Basotho indigenous farming knowledge structured to integrate
 % with the main knowledge base using the frame-based representation.
 
+:- discontiguous(frame/2).
+:- discontiguous(indigenous_practice_for_pest/2).
+:- discontiguous(indigenous_practice_for_crop/2).
+
 % ========================
 % INDIGENOUS PRACTICES
 % ========================

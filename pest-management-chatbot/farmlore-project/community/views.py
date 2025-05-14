@@ -55,12 +55,22 @@ def role_required(allowed_roles):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
-            if not hasattr(request.user, 'profile'):
-                return HttpResponseForbidden("You don't have permission to access this page")
+            logger.info(f"[role_required] Checking access for user: {request.user}")
+            logger.info(f"[role_required] User authenticated: {request.user.is_authenticated}")
             
-            if request.user.profile.role not in allowed_roles:
+            if not hasattr(request.user, 'profile'):
+                logger.warning(f"[role_required] Access DENIED for {request.user}: User has no 'profile' attribute.")
+                return HttpResponseForbidden("You don't have permission to access this page (profile missing)")
+            
+            user_role = request.user.profile.role
+            logger.info(f"[role_required] User role: {user_role}")
+            logger.info(f"[role_required] Required roles: {allowed_roles}")
+            
+            if user_role not in allowed_roles:
+                logger.warning(f"[role_required] Access DENIED for {request.user} (role: {user_role}). Required: {allowed_roles}")
                 return HttpResponseForbidden(f"This feature requires one of these roles: {', '.join(allowed_roles)}")
             
+            logger.info(f"[role_required] Access GRANTED for {request.user} (role: {user_role})")
             return view_func(request, *args, **kwargs)
         return _wrapped_view
     return decorator

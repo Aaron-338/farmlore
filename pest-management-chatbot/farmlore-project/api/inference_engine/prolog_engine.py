@@ -5,7 +5,7 @@ import os
 import logging
 import json
 from .ollama_handler import OllamaHandler
-from ..prolog_integration.service import PrologService
+from prolog_integration.service import PrologService
 
 # Mock Prolog class that mimics the interface of pyswip.Prolog
 class Prolog:
@@ -146,9 +146,9 @@ class PrologEngine:
                     
                     prolog_context_str = self._format_prolog_context_for_llm(retrieved_context)
                     
-                    if prolog_context_str != "No specific information found in the local knowledge base." and \ 
-                       prolog_context_str != "No specific information found in the local knowledge base matching the query structure." and \ 
-                       "Error retrieving" not in prolog_context_str : 
+                    if (prolog_context_str != "No specific information found in the local knowledge base." and 
+                        prolog_context_str != "No specific information found in the local knowledge base matching the query structure." and 
+                        "Error retrieving" not in prolog_context_str):
                         logging.info(f"Formatted context from Prolog:\n{prolog_context_str}")
                     else:
                         logging.info("No specific context found or formatted by _format_prolog_context_for_llm.")

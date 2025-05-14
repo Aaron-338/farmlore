@@ -23,7 +23,7 @@ def home_view(request):
 
 def about_view(request):
     """About page view"""
-    return render(request, 'about.html')
+    return render(request, 'core/about.html')
 
 def chat(request):
     """Chat page view"""

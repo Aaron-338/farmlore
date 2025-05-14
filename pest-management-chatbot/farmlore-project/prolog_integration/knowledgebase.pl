@@ -1,3 +1,5 @@
+:- discontiguous(frame/2).
+
 % ========================
 % FRAME TEMPLATES
 % ========================
@@ -253,15 +255,15 @@ frame(crop, [
 % ========================
 % IPM Priority Recommendation
 recommend_solution(Pest, Solution) :-
-    practice(name:Solution, type:cultural_control, controls:Controls, cultural_context:Ctx),
+    practice(name:Solution, type:cultural_control, controls:Controls, cultural_context:_Ctx),
     member(Pest, Controls), !.
 
 recommend_solution(Pest, Solution) :-
-    practice(name:Solution, type:biological_control, controls:Controls, cultural_context:Ctx),
+    practice(name:Solution, type:biological_control, controls:Controls, cultural_context:_Ctx),
     member(Pest, Controls), !.
 
 recommend_solution(Pest, Solution) :-
-    practice(name:Solution, type:organic_pesticide, controls:Controls, cultural_context:Ctx),
+    practice(name:Solution, type:organic_pesticide, controls:Controls, cultural_context:_Ctx),
     member(Pest, Controls), !.
 
 % Threshold-Based Intervention

@@ -79,6 +79,16 @@
                     {% endfor %}
                 </div>
                 
+                {% if knowledge.is_verified %}
+                    <div class="alert alert-info mt-4" id="export-prolog-section">
+                        <p>This knowledge has been verified. You can export it to Prolog for integration with the chatbot.</p>
+                        <button type="button" class="btn btn-success" id="export-prolog-btn" data-knowledge-id="{{ knowledge.id }}">
+                            <i class="bi bi-download"></i> Export to Prolog
+                        </button>
+                        <div id="export-message-placeholder" class="mt-2"></div>
+                    </div>
+                {% endif %}
+
                 {% if knowledge.prolog_name %}
                     <div class="alert alert-success mt-4">
                         <h6 class="alert-heading">Integration Status:</h6>
@@ -199,18 +209,6 @@
                         {% endwith %}
                     {% endif %}
                 </p>
-                
-                {% if knowledge.is_verified and not knowledge.prolog_name and user.is_superuser %}
-                    <div class="alert alert-info">
-                        <p>This knowledge has been verified but not yet integrated into the FarmLore chatbot.</p>
-                        <form method="post" action="/community/api/knowledge/{{ knowledge.id }}/export_to_prolog/">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-download"></i> Export to Prolog
-                            </button>
-                        </form>
-                    </div>
-                {% endif %}
             </div>
         </div>
         
@@ -248,7 +246,62 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const exportButton = document.getElementById('export-prolog-btn');
+    const messagePlaceholder = document.getElementById('export-message-placeholder');
+    
+    if (exportButton) {
+        const knowledgeId = exportButton.dataset.knowledgeId;
+        exportButton.addEventListener('click', function() {
+            if (!knowledgeId) {
+                messagePlaceholder.innerHTML = '<div class="alert alert-danger">Error: Knowledge ID not found.</div>';
+                return;
+            }
+
+            exportButton.disabled = true;
+            exportButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Exporting...';
+            messagePlaceholder.innerHTML = ''; 
+
+            const csrfTokenValue = "{{ csrf_token }}";
+
+            fetch(`/community/api/knowledge/${knowledgeId}/export_to_prolog/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfTokenValue
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.error || errData.detail || `Server error: ${response.status}`);
+                    }).catch(() => {
+                        throw new Error(`Server error: ${response.status} - ${response.statusText}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    messagePlaceholder.innerHTML = `<div class="alert alert-success">${data.message || 'Exported successfully!'}</div>`;
+                } else {
+                    messagePlaceholder.innerHTML = `<div class="alert alert-danger">${data.error || data.message || 'An unknown error occurred.'}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error exporting to Prolog:', error);
+                messagePlaceholder.innerHTML = `<div class="alert alert-danger">${error.message || 'An error occurred while contacting the server.'}</div>`;
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    exportButton.disabled = false;
+                    exportButton.innerHTML = '<i class="bi bi-gear"></i> Export to Prolog (JS)';
+                }, 2000); 
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

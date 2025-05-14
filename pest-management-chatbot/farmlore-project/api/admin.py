@@ -16,17 +16,17 @@ class MyAdminSite(admin.AdminSite):
         app_list = super().get_app_list(request)
         
         # Add performance dashboard link
-        custom_app = {
-            'name': _('Performance Monitoring'),
-            'app_label': 'performance',
-            'models': [{
-                'name': _('Performance Dashboard'),
-                'object_name': 'performance_dashboard',
-                'admin_url': reverse('performance-dashboard'),
-                'view_only': True,
-            }]
-        }
-        app_list.append(custom_app)
+        # custom_app = {
+        #     'name': _('Performance Monitoring'),
+        #     'app_label': 'performance',
+        #     'models': [{
+        #         'name': _('Performance Dashboard'),
+        #         'object_name': 'performance_dashboard',
+        #         'admin_url': reverse('performance-dashboard'),
+        #         'view_only': True,
+        #     }]
+        # }
+        # app_list.append(custom_app)
         
         return app_list
 
