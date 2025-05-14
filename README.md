@@ -130,6 +130,7 @@ The application consists of three main services:
 1. **Web Service**: Django application running the chatbot
 2. **Database**: PostgreSQL for storing chat history and user data
 3. **Nginx**: Web server for serving static files and proxying requests
+4. **Ollama**: Service running the Ollama large language models. Custom models defined via local modelfiles are built into this service's Docker image.
 
 ## Extending the Knowledge Base
 

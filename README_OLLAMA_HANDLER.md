@@ -45,18 +45,23 @@ print(response)
 
 The handler is designed to work with an Ollama service running in a Docker container. Ensure you have:
 
-1. Added the Ollama service to your `docker-compose.yml` file
-2. Set environment variables in your web service:
-   - `USE_OLLAMA=true`
-   - `OLLAMA_BASE_URL=http://ollama:11434`
+1.  Added the Ollama service to your `docker-compose.yml` file (located in the project root).
+    This service is configured with a `build` context that points to `pest-management-chatbot/farmlore-project/ollama/`. 
+    The Dockerfile in this location copies your custom modelfiles (from `pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles/`) into the Ollama image. 
+    When the `ollama` service is built and started (e.g., via `docker-compose up --build`), Ollama automatically creates the specialized models from these modelfiles.
+2.  Set environment variables in your `web` service (the Django application):
+    *   `USE_OLLAMA=true`
+    *   `OLLAMA_BASE_URL=http://ollama:11434`
 
 ### Installing Models
 
-Before using the handler with a particular model, make sure it's pulled into your Ollama instance:
+**Base Models:** If your custom modelfiles (e.g., `farmlore-pest-id.modelfile`) use a `FROM` instruction referencing a base model (like `FROM tinyllama:latest`), that base model must be available to Ollama. You can pull it into your Ollama instance once:
 
 ```bash
 docker compose exec ollama ollama pull tinyllama
 ```
+
+**Specialized Models (e.g., `farmlore-pest-id`):** These are **not** installed using `ollama pull`. They are automatically created by the Ollama service when it's built and started using the `docker-compose.yml` from the project root. The `build` process for the `ollama` service handles the inclusion of your modelfiles (located in `pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles/`). The `OllamaHandler` in the `web` service will then detect these pre-built specialized models.
 
 ## Fallback Behavior
 
@@ -66,9 +71,9 @@ If the Ollama service is not available, the handler will automatically fall back
 
 - If you see "Ollama is not available" warnings in logs, check:
   - Is the Ollama container running? (`docker compose ps`)
-  - Has the model been pulled? 
+  - For base models (e.g., `tinyllama`): Has it been pulled into the Ollama service (`docker compose exec ollama ollama pull tinyllama`)?
+  - For specialized models (e.g., `farmlore-pest-id`): Did the `ollama` service build correctly (`docker compose build ollama`) and did Ollama create the model from the included modefiles (check `docker compose logs ollama`)?
   - Are network connections correct in the docker-compose file?
-  - Does Ollama have enough resources?
 
 - If responses are empty or unexpected:
   - Check Ollama container logs (`docker compose logs ollama`)

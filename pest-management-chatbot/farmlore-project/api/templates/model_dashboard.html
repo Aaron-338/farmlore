@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmLore Model Performance Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #198754;
+            color: white;
+            font-weight: bold;
+        }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .stat-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #198754;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 30px;
+        }
+        .refresh-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">FarmLore Model Performance Dashboard</h1>
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        System Overview
+                        <button id="refreshBtn" class="btn btn-sm btn-light float-end">Refresh Data</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-title">Total Queries</div>
+                                <div class="stat-value" id="totalQueries">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Avg Response Time</div>
+                                <div class="stat-value" id="avgResponseTime">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Success Rate</div>
+                                <div class="stat-value" id="successRate">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-title">Positive Feedback</div>
+                                <div class="stat-value" id="positiveFeedback">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Query Distribution by Type</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="queryTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Model Usage</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="modelUsageChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Response Times by Model</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="responseTimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Success Rates by Model</div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="successRateChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Model Details</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Model</th>
+                                        <th>Query Type</th>
+                                        <th>Avg Response Time</th>
+                                        <th>Success Rate</th>
+                                        <th>Token Usage</th>
+                                        <th>Positive Feedback</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelDetailsTable">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart objects
+        let queryTypeChart, modelUsageChart, responseTimeChart, successRateChart;
+        
+        // Colors for charts
+        const chartColors = [
+            'rgba(25, 135, 84, 0.7)',
+            'rgba(13, 110, 253, 0.7)',
+            'rgba(220, 53, 69, 0.7)',
+            'rgba(255, 193, 7, 0.7)',
+            'rgba(111, 66, 193, 0.7)'
+        ];
+        
+        // Model to query type mapping
+        const modelMapping = {
+            'farmlore-pest-id': 'pest_identification',
+            'farmlore-pest-mgmt': 'pest_management',
+            'farmlore-indigenous': 'indigenous_knowledge',
+            'farmlore-crop-pests': 'crop_pests',
+            'farmlore-general': 'general_query'
+        };
+        
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts
+            initializeCharts();
+            
+            // Load data
+            fetchData();
+            
+            // Set up refresh button
+            document.getElementById('refreshBtn').addEventListener('click', fetchData);
+        });
+        
+        // Initialize charts with empty data
+        function initializeCharts() {
+            // Query Type Distribution Chart
+            const queryTypeCtx = document.getElementById('queryTypeChart').getContext('2d');
+            queryTypeChart = new Chart(queryTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // Model Usage Chart
+            const modelUsageCtx = document.getElementById('modelUsageChart').getContext('2d');
+            modelUsageChart = new Chart(modelUsageCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Usage Count',
+                        data: [],
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Response Time Chart
+            const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
+            responseTimeChart = new Chart(responseTimeCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Avg Response Time (s)',
+                        data: [],
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Success Rate Chart
+            const successRateCtx = document.getElementById('successRateChart').getContext('2d');
+            successRateChart = new Chart(successRateCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: [],
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fetch data from the API
+        function fetchData() {
+            // In a real implementation, this would fetch from the API endpoint
+            // For demo purposes, we'll use mock data
+            const apiUrl = '/api/v1/model-stats/combined';
+            
+            // Simulate API call with mock data
+            const mockData = generateMockData();
+            updateDashboard(mockData);
+            
+            // In a real implementation, uncomment this code:
+            /*
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateDashboard(data);
+                    } else {
+                        console.error('Error fetching data:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+            */
+        }
+        
+        // Generate mock data for demo purposes
+        function generateMockData() {
+            const models = [
+                'farmlore-pest-id',
+                'farmlore-pest-mgmt',
+                'farmlore-indigenous',
+                'farmlore-crop-pests',
+                'farmlore-general'
+            ];
+            
+            const queryTypes = [
+                'pest_identification',
+                'pest_management',
+                'indigenous_knowledge',
+                'crop_pests',
+                'general_query'
+            ];
+            
+            // Generate mock model stats
+            const modelStats = {};
+            models.forEach((model, index) => {
+                const responseTime = 0.3 + Math.random() * 0.5;
+                const successRate = 85 + Math.random() * 15;
+                const usageCount = 50 + Math.floor(Math.random() * 150);
+                const tokenUsage = 100 + Math.floor(Math.random() * 200);
+                const positiveFeedback = 70 + Math.random() * 25;
+                
+                modelStats[model] = {
+                    'response_time': {
+                        'avg': responseTime,
+                        'min': responseTime * 0.7,
+                        'max': responseTime * 1.3,
+                        'count': usageCount
+                    },
+                    'success_rate': {
+                        'rate': successRate,
+                        'success_count': Math.floor(usageCount * (successRate / 100)),
+                        'failure_count': Math.floor(usageCount * (1 - successRate / 100)),
+                        'total': usageCount
+                    },
+                    'token_usage': {
+                        'avg_input': tokenUsage * 0.3,
+                        'avg_output': tokenUsage * 0.7,
+                        'avg_total': tokenUsage,
+                        'count': usageCount
+                    },
+                    'usage_frequency': usageCount,
+                    'user_feedback': {
+                        'positive_rate': positiveFeedback,
+                        'negative_rate': (100 - positiveFeedback) * 0.7,
+                        'neutral_rate': (100 - positiveFeedback) * 0.3,
+                        'total': Math.floor(usageCount * 0.8)
+                    }
+                };
+            });
+            
+            // Generate mock query type stats
+            const queryTypeStats = {};
+            const totalQueries = 500;
+            let remainingPercentage = 100;
+            
+            queryTypes.forEach((type, index) => {
+                let percentage;
+                if (index === queryTypes.length - 1) {
+                    percentage = remainingPercentage;
+                } else {
+                    percentage = Math.floor(10 + Math.random() * 30);
+                    if (percentage > remainingPercentage) {
+                        percentage = remainingPercentage;
+                    }
+                    remainingPercentage -= percentage;
+                }
+                
+                const count = Math.floor(totalQueries * (percentage / 100));
+                
+                queryTypeStats[type] = {
+                    'count': count,
+                    'percentage': percentage
+                };
+            });
+            
+            return {
+                'success': true,
+                'model_stats': modelStats,
+                'query_type_stats': queryTypeStats,
+                'specialized_models': {
+                    'pest_identification': 'farmlore-pest-id',
+                    'pest_management': 'farmlore-pest-mgmt',
+                    'indigenous_knowledge': 'farmlore-indigenous',
+                    'crop_pests': 'farmlore-crop-pests',
+                    'general_query': 'farmlore-general'
+                }
+            };
+        }
+        
+        // Update the dashboard with the fetched data
+        function updateDashboard(data) {
+            // Update overview stats
+            updateOverviewStats(data);
+            
+            // Update charts
+            updateQueryTypeChart(data.query_type_stats);
+            updateModelUsageChart(data.model_stats);
+            updateResponseTimeChart(data.model_stats);
+            updateSuccessRateChart(data.model_stats);
+            
+            // Update model details table
+            updateModelDetailsTable(data.model_stats, data.specialized_models);
+        }
+        
+        // Update overview statistics
+        function updateOverviewStats(data) {
+            let totalQueries = 0;
+            let totalResponseTime = 0;
+            let totalResponseTimeCount = 0;
+            let totalSuccesses = 0;
+            let totalFailures = 0;
+            let totalPositiveFeedback = 0;
+            let totalFeedbackCount = 0;
+            
+            // Calculate totals from model stats
+            for (const model in data.model_stats) {
+                const stats = data.model_stats[model];
+                
+                // Total queries
+                if (stats.usage_frequency) {
+                    totalQueries += stats.usage_frequency;
+                }
+                
+                // Response time
+                if (stats.response_time) {
+                    totalResponseTime += stats.response_time.avg * stats.response_time.count;
+                    totalResponseTimeCount += stats.response_time.count;
+                }
+                
+                // Success rate
+                if (stats.success_rate) {
+                    totalSuccesses += stats.success_rate.success_count;
+                    totalFailures += stats.success_rate.failure_count;
+                }
+                
+                // Positive feedback
+                if (stats.user_feedback) {
+                    totalPositiveFeedback += stats.user_feedback.positive_rate * stats.user_feedback.total / 100;
+                    totalFeedbackCount += stats.user_feedback.total;
+                }
+            }
+            
+            // Calculate averages
+            const avgResponseTime = totalResponseTimeCount > 0 ? totalResponseTime / totalResponseTimeCount : 0;
+            const successRate = (totalSuccesses + totalFailures) > 0 ? (totalSuccesses / (totalSuccesses + totalFailures)) * 100 : 0;
+            const positiveFeedbackRate = totalFeedbackCount > 0 ? (totalPositiveFeedback / totalFeedbackCount) * 100 : 0;
+            
+            // Update DOM elements
+            document.getElementById('totalQueries').textContent = totalQueries;
+            document.getElementById('avgResponseTime').textContent = avgResponseTime.toFixed(2) + 's';
+            document.getElementById('successRate').textContent = successRate.toFixed(1) + '%';
+            document.getElementById('positiveFeedback').textContent = positiveFeedbackRate.toFixed(1) + '%';
+        }
+        
+        // Update query type distribution chart
+        function updateQueryTypeChart(queryTypeStats) {
+            const labels = [];
+            const data = [];
+            
+            for (const type in queryTypeStats) {
+                labels.push(formatQueryTypeName(type));
+                data.push(queryTypeStats[type].count);
+            }
+            
+            queryTypeChart.data.labels = labels;
+            queryTypeChart.data.datasets[0].data = data;
+            queryTypeChart.update();
+        }
+        
+        // Update model usage chart
+        function updateModelUsageChart(modelStats) {
+            const labels = [];
+            const data = [];
+            
+            for (const model in modelStats) {
+                labels.push(formatModelName(model));
+                data.push(modelStats[model].usage_frequency || 0);
+            }
+            
+            modelUsageChart.data.labels = labels;
+            modelUsageChart.data.datasets[0].data = data;
+            modelUsageChart.update();
+        }
+        
+        // Update response time chart
+        function updateResponseTimeChart(modelStats) {
+            const labels = [];
+            const data = [];
+            
+            for (const model in modelStats) {
+                if (modelStats[model].response_time) {
+                    labels.push(formatModelName(model));
+                    data.push(modelStats[model].response_time.avg);
+                }
+            }
+            
+            responseTimeChart.data.labels = labels;
+            responseTimeChart.data.datasets[0].data = data;
+            responseTimeChart.update();
+        }
+        
+        // Update success rate chart
+        function updateSuccessRateChart(modelStats) {
+            const labels = [];
+            const data = [];
+            
+            for (const model in modelStats) {
+                if (modelStats[model].success_rate) {
+                    labels.push(formatModelName(model));
+                    data.push(modelStats[model].success_rate.rate);
+                }
+            }
+            
+            successRateChart.data.labels = labels;
+            successRateChart.data.datasets[0].data = data;
+            successRateChart.update();
+        }
+        
+        // Update model details table
+        function updateModelDetailsTable(modelStats, specializedModels) {
+            const tableBody = document.getElementById('modelDetailsTable');
+            tableBody.innerHTML = '';
+            
+            // Create a reverse mapping from model to query type
+            const modelToQueryType = {};
+            for (const queryType in specializedModels) {
+                modelToQueryType[specializedModels[queryType]] = queryType;
+            }
+            
+            for (const model in modelStats) {
+                const stats = modelStats[model];
+                const row = document.createElement('tr');
+                
+                // Model name
+                const modelCell = document.createElement('td');
+                modelCell.textContent = formatModelName(model);
+                row.appendChild(modelCell);
+                
+                // Query type
+                const queryTypeCell = document.createElement('td');
+                queryTypeCell.textContent = formatQueryTypeName(modelToQueryType[model] || 'unknown');
+                row.appendChild(queryTypeCell);
+                
+                // Response time
+                const responseTimeCell = document.createElement('td');
+                if (stats.response_time) {
+                    responseTimeCell.textContent = stats.response_time.avg.toFixed(2) + 's';
+                } else {
+                    responseTimeCell.textContent = '-';
+                }
+                row.appendChild(responseTimeCell);
+                
+                // Success rate
+                const successRateCell = document.createElement('td');
+                if (stats.success_rate) {
+                    successRateCell.textContent = stats.success_rate.rate.toFixed(1) + '%';
+                } else {
+                    successRateCell.textContent = '-';
+                }
+                row.appendChild(successRateCell);
+                
+                // Token usage
+                const tokenUsageCell = document.createElement('td');
+                if (stats.token_usage) {
+                    tokenUsageCell.textContent = Math.round(stats.token_usage.avg_total);
+                } else {
+                    tokenUsageCell.textContent = '-';
+                }
+                row.appendChild(tokenUsageCell);
+                
+                // Positive feedback
+                const feedbackCell = document.createElement('td');
+                if (stats.user_feedback) {
+                    feedbackCell.textContent = stats.user_feedback.positive_rate.toFixed(1) + '%';
+                } else {
+                    feedbackCell.textContent = '-';
+                }
+                row.appendChild(feedbackCell);
+                
+                tableBody.appendChild(row);
+            }
+        }
+        
+        // Format model name for display
+        function formatModelName(model) {
+            return model.replace('farmlore-', '').replace(/-/g, ' ');
+        }
+        
+        // Format query type name for display
+        function formatQueryTypeName(type) {
+            return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+    </script>
+</body>
+</html>

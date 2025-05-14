@@ -1,0 +1,49 @@
+{
+  "response_times": {
+    "tinyllama": [
+      63.371641874313354,
+      63.37182426452637
+    ],
+    "farmlore-hybrid": [
+      107.72466278076172
+    ]
+  },
+  "token_usage": {
+    "tinyllama": [
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      }
+    ],
+    "farmlore-hybrid": [
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      }
+    ]
+  },
+  "success_rates": {
+    "tinyllama": {
+      "success": 2,
+      "failure": 0
+    },
+    "farmlore-hybrid": {
+      "success": 1,
+      "failure": 0
+    }
+  },
+  "usage_frequency": {
+    "tinyllama": 2,
+    "unknown": 1,
+    "pest_identification": 2,
+    "farmlore-hybrid": 1
+  },
+  "user_feedback": {}
+}

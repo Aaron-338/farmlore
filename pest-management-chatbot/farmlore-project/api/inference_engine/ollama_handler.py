@@ -10,6 +10,7 @@ import threading
 import os
 import pickle
 import random
+from pathlib import Path
 
 # Import prompt template system
 from .prompt_templates import PromptType, format_prompt, detect_prompt_type
@@ -19,6 +20,9 @@ from .response_processor import process_response
 from api.monitoring import record_llm_performance
 
 logger = logging.getLogger(__name__)
+
+# Define path to modelfiles directory
+MODELFILES_DIR = os.path.join(os.path.dirname(__file__), "modelfiles")
 
 # Import OllamaModel only when needed to avoid circular imports
 def get_default_model():
@@ -158,7 +162,7 @@ class CircuitBreaker:
 class OllamaHandler:
     """Handler for interacting with Ollama API with robust error handling."""
     
-    def __init__(self, base_url=None, timeout=180, retry_attempts=5, retry_delay=3):
+    def __init__(self, base_url="http://localhost:11434", default_model_name="nous-hermes2", request_timeout=120, max_retries=2, initial_backoff=5, use_disk_cache=True, disk_cache_dir=".ollama_cache", semantic_cache_threshold=0.85):
         """
         Initialize the Ollama handler with enhanced error handling.
         
@@ -168,15 +172,11 @@ class OllamaHandler:
             retry_attempts: Number of retry attempts for transient failures (increased from 3 to 5)
             retry_delay: Delay between retries in seconds (increased from 2s to 3s)
         """
-        # Get base URL from environment variable if not provided
-        if base_url is None:
-            base_url = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
-            
-        self.base_url = base_url
-        # Ensure the base_url doesn't end with a slash
-        if self.base_url.endswith('/'):
-            self.base_url = self.base_url[:-1]
-            
+        self.base_url = base_url.rstrip('/')
+        self.default_model_name = default_model_name  # Store default_model_name
+        self.ollama_model = os.environ.get('OLLAMA_MODEL', default_model_name)  # Get model from env or use default
+        self.request_timeout = request_timeout
+        
         # Try multiple potential Ollama hosts if primary fails
         self.fallback_urls = [
             "http://localhost:11434",
@@ -189,16 +189,36 @@ class OllamaHandler:
         self.api_generate = f"{self.base_url}/api/generate"
         self.api_chat = f"{self.base_url}/api/chat"
         self.api_tags = f"{self.base_url}/api/tags"
+        self.api_create = f"{self.base_url}/api/create"
         
-        self.timeout = timeout
-        self.retry_attempts = retry_attempts
-        self.retry_delay = retry_delay
+        self.timeout = request_timeout
+        self.retry_attempts = max_retries
+        self.retry_delay = initial_backoff
         
         # Create a session object for connection pooling
         self.session = requests.Session()
         
         # Initialize circuit breakers for different operations
         self.generate_circuit = CircuitBreaker()
+        self.availability_circuit = CircuitBreaker()
+        
+        # Add model registry for specialized models
+        self.specialized_models = {
+            'pest_identification': 'farmlore-pest-id',
+            'pest_management': 'farmlore-pest-mgmt',
+            'indigenous_knowledge': 'farmlore-indigenous',
+            'crop_pests': 'farmlore-crop-pests',
+            'general_query': 'farmlore-general'
+        }
+        
+        # Map modelfile paths to model names
+        self.modelfile_paths = {
+            'farmlore-pest-id': os.path.join(MODELFILES_DIR, 'pest_identification.modelfile'),
+            'farmlore-pest-mgmt': os.path.join(MODELFILES_DIR, 'pest_management.modelfile'),
+            'farmlore-indigenous': os.path.join(MODELFILES_DIR, 'indigenous_knowledge.modelfile'),
+            'farmlore-crop-pests': os.path.join(MODELFILES_DIR, 'crop_pests.modelfile'),
+            'farmlore-general': os.path.join(MODELFILES_DIR, 'general_query.modelfile')
+        }
         self.chat_circuit = CircuitBreaker()
         self.tags_circuit = CircuitBreaker()
         
@@ -244,6 +264,8 @@ class OllamaHandler:
                     logger.info("Ollama is available and will be used for response generation.")
                     # Sync models with database in background
                     self.sync_models_with_db()
+                    # Initialize specialized models
+                    self._initialize_specialized_models()
                 else:
                     logger.warning("Ollama is not available. Using Prolog-based fallback.")
                 
@@ -259,6 +281,296 @@ class OllamaHandler:
         # Start initialization in a background thread
         init_thread = threading.Thread(target=initialization_worker, daemon=True)
         init_thread.start()
+        
+    def _initialize_specialized_models(self):
+        """
+        Create specialized models using Modelfiles if they don't exist
+        """
+        try:
+            # Get list of existing models
+            existing_models_at_start = self._get_available_models()
+            logger.info(f"OllamaHandler: Initializing specialized models. Existing models: {existing_models_at_start}")
+            
+            all_specialized_models_ready = True # Track overall success
+
+            # Initialize each specialized model if needed
+            for model_name, modelfile_path in self.modelfile_paths.items():
+                # model_name is like 'farmlore-pest-id'
+                # existing_models_at_start contains entries like 'farmlore-pest-id:latest'
+                model_exists_as_is = model_name in existing_models_at_start
+                model_exists_with_latest_tag = f"{model_name}:latest" in existing_models_at_start
+
+                if not model_exists_as_is and not model_exists_with_latest_tag:
+                    logger.info(f"OllamaHandler: Specialized model {model_name} does not appear to exist. Attempting to create from {modelfile_path}")
+                    # _create_model_from_file now handles streaming and returns True only on definitive success from stream
+                    creation_stream_successful = self._create_model_from_file(model_name, modelfile_path)
+                    
+                    if creation_stream_successful:
+                        logger.info(f"OllamaHandler: Streamed creation for {model_name} reported success. Verifying presence in /api/tags...")
+                        
+                        # Poll /api/tags to confirm model availability after successful stream creation
+                        verified_in_tags = False
+                        for attempt in range(6): # Poll for up to 60 seconds (6 attempts * 10s delay)
+                            time.sleep(10) 
+                            current_models_after_creation = self._get_available_models()
+                            if model_name in current_models_after_creation:
+                                logger.info(f"OllamaHandler: Specialized model {model_name} CONFIRMED in /api/tags (attempt {attempt + 1}).")
+                                verified_in_tags = True
+                                break
+                            else:
+                                logger.info(f"OllamaHandler: Specialized model {model_name} not yet in /api/tags (attempt {attempt + 1}). Checking again soon. Models: {current_models_after_creation}")
+                        
+                        if not verified_in_tags:
+                            logger.warning(f"OllamaHandler: Specialized model {model_name} was reported as successfully created by stream, BUT NOT found in /api/tags after polling for 60s. This may indicate an issue.")
+                            all_specialized_models_ready = False # Mark as not fully ready if not in tags
+                        # If verified_in_tags is true, it remains ready, no change to all_specialized_models_ready needed here unless it was already false
+
+                    else:
+                        logger.warning(f"OllamaHandler: Streamed creation for specialized model {model_name} FAILED or did not report success.")
+                        all_specialized_models_ready = False # Mark as not ready if stream creation failed
+                else:
+                    # logger.info(f"OllamaHandler: Specialized model already exists: {model_name} (found as '{model_name if model_exists_as_is else f"{model_name}:latest"}'). Skipping creation.")
+                    found_as_str = model_name if model_exists_as_is else model_name + ":latest"
+                    logger.info(f"OllamaHandler: Specialized model already exists: {model_name} (found as '{found_as_str}'). Skipping creation.")
+            
+            if all_specialized_models_ready:
+                logger.info("OllamaHandler: All specialized models appear ready (either pre-existing or created and verified).")
+            else:
+                logger.warning("OllamaHandler: Not all specialized models are confirmed ready after creation and verification attempts.")
+                # self._initialization_success could be set to False here if all specialized models are strictly required.
+                # For now, allow the main _initialization_success to be True if the base Ollama is responsive,
+                # even if some specialized models failed. The system can fall back to the default model.
+
+            logger.info("OllamaHandler: Specialized models initialization process complete.")
+        except Exception as e:
+            logger.error(f"Error initializing specialized models: {str(e)}")
+            # self._initialization_success = False # Consider this if errors here are critical
+            
+    def _get_available_models(self):
+        """
+        Get list of available models from Ollama
+        """
+        try:
+            response = self.session.get(self.api_tags, timeout=self.timeout)
+            if response.status_code == 200:
+                models_data = response.json()
+                return [model['name'] for model in models_data.get('models', [])]
+            logger.warning(f"Failed to get available models: {response.status_code}")
+            return []
+        except Exception as e:
+            logger.error(f"Error getting available models: {str(e)}")
+            return []
+            
+    def _create_model_from_file(self, model_name, modelfile_path):
+        """
+        Create a model from a Modelfile
+        """
+        try:
+            # Check if modelfile exists
+            if not os.path.exists(modelfile_path):
+                logger.error(f"Modelfile not found: {modelfile_path}")
+                return False
+                
+            # Read the Modelfile content with explicit UTF-8 encoding
+            with open(modelfile_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines() # New: read all lines
+            
+            # Log original length (less relevant now, but harmless)
+            # logger.info(f"OllamaHandler: Modelfile {model_name} raw length: {len(modelfile_content_raw)}") # Original content_raw not defined here
+
+            # New: Process lines to remove BOM and strip individual lines, then rejoin
+            if lines and lines[0].startswith('\ufeff'):
+                lines[0] = lines[0][1:] # Remove BOM from first line
+            
+            # Strip whitespace from each line and filter out empty lines that are NOT part of a multi-line directive
+            processed_lines = [line.strip() for line in lines if line.strip()] # Keep this simple for now
+            modelfile_content = "\n".join(processed_lines)
+            
+            # Targeted fix for 'SYSTEM """..."""' or "SYSTEM '''...'''" issue
+            # This function will be defined and used locally or inline.
+            # It looks for a SYSTEM directive followed by triple quotes on its own line (after stripping),
+            # captures the content between them, and removes the triple quotes.
+            def replace_system_quotes(content):
+                # Simpler, more direct replacement for opening quotes
+                content = content.replace('SYSTEM """', 'SYSTEM')
+                content = content.replace("SYSTEM '''", 'SYSTEM')
+                
+                # Simpler, more direct replacement for closing quotes
+                # Assuming the system prompt is the last part of the modelfile content or followed by newlines
+                if content.endswith('"""'):
+                    content = content[:-3]
+                elif content.endswith("'''"):
+                    content = content[:-3]
+                
+                # Remove any leading/trailing whitespace that might have been left from replacements
+                # and ensure SYSTEM keyword is followed by a newline if content was just "SYSTEM"
+                # Split into lines, process SYSTEM line, then rejoin
+                lines = content.split('\n')
+                processed_lines = []
+                system_keyword_found = False
+                for i, line in enumerate(lines):
+                    stripped_line = line.strip()
+                    if stripped_line == "SYSTEM":
+                        processed_lines.append("SYSTEM") # Just the keyword
+                        system_keyword_found = True
+                    elif system_keyword_found and stripped_line == "" and بعدی_line_is_not_directive (lines, i+1):
+                        # If we had SYSTEM, then an empty line from quote removal, and next is not a directive, skip this empty line.
+                        # This avoids an extra blank line between SYSTEM and its content if quotes were on their own lines.
+                        pass # Skip adding this effectively empty line
+                    else:
+                        processed_lines.append(line) # Keep other lines as they are (stripped or original based on previous logic)
+                        if system_keyword_found and stripped_line != "": # Content for system prompt started
+                            system_keyword_found = False # Reset flag after first content line of system prompt
+                
+                content = "\n".join(processed_lines).strip() # Strip leading/trailing whitespace from the whole content again
+                return content
+            
+            # Helper for replace_system_quotes logic
+            def بعدی_line_is_not_directive(all_lines, index):
+                if index >= len(all_lines):
+                    return True # No next line, so not a directive
+                next_line_stripped = all_lines[index].strip()
+                known_directives = ["FROM", "PARAMETER", "TEMPLATE", "SYSTEM", "LICENSE", "MIROSTAT", "MIROSTAT_ETA", "MIROSTAT_TAU", "NUM_CTX", "NUM_GQA", "NUM_GPU", "NUM_THREAD", "REPEAT_LAST_N", "REPEAT_PENALTY", "SEED", "STOP", "TEMPERATURE", "TOP_K", "TOP_P", "USER", "ASSISTANT"]
+                for directive in known_directives:
+                    if next_line_stripped.startswith(directive):
+                        return False
+                return True
+
+            modelfile_content = replace_system_quotes(modelfile_content)
+
+            logger.info(f"OllamaHandler: Modelfile {model_name} length after line-by-line processing and quote cleaning: {len(modelfile_content)}")
+            logger.info(f"OllamaHandler: Modelfile content type for {model_name}: {type(modelfile_content)}")
+
+            # Diagnostic: Log ord() of first few characters
+            if modelfile_content:
+                logger.info(f"OllamaHandler: ord() of first 20 chars of modelfile_content for {model_name}: {[ord(c) for c in modelfile_content[:20]]}")
+                # Also log if it starts with FROM, as a sanity check string comparison
+                if modelfile_content.startswith("FROM"):
+                    logger.info(f"OllamaHandler: modelfile_content for {model_name} DOES start with 'FROM'.")
+                else:
+                    logger.warning(f"OllamaHandler: modelfile_content for {model_name} DOES NOT start with 'FROM'. First 20 chars: {modelfile_content[:20]}")
+            else:
+                logger.warning(f"OllamaHandler: modelfile_content for {model_name} is empty before payload creation.")
+
+            # Log the exact Modelfile content being sent, its type, and final length
+            logger.info(f"OllamaHandler: Modelfile content for {model_name} being sent (normalized):\n{modelfile_content[:500]}... (showing first 500 chars)")
+
+            # Create the model
+            create_payload = {
+                'name': model_name,
+                'modelfile': modelfile_content,
+                'stream': True  # Enable streaming
+            }
+            
+            # Log the full payload before sending
+            try:
+                # Attempt to log a JSON representation for readability, but handle if it's not serializable for some reason
+                payload_log_str = json.dumps(create_payload, indent=2)
+                if len(payload_log_str) > 1000: # Avoid excessively long logs for the Modelfile part
+                    payload_log_str = json.dumps({'name': create_payload['name'], 'modelfile': create_payload['modelfile'][:200] + '...', 'stream': create_payload['stream']}, indent=2)
+            except Exception:
+                payload_log_str = str(create_payload) # Fallback to string representation
+            logger.info(f"OllamaHandler: Full create_payload for {model_name}:\\n{payload_log_str}")
+            
+            logger.info(f"Creating model {model_name} with Modelfile from {modelfile_path} (streaming)")
+            
+            # Use a longer timeout for model creation, and stream the response
+            response = self.session.post(
+                self.api_create, 
+                json=create_payload,
+                timeout=1800,  # 30 minutes, as model creation can be very long
+                stream=True      # Ensure requests library streams the response body
+            )
+            
+            # Check initial response status code
+            if response.status_code != 200:
+                logger.error(f"Failed to initiate model creation for {model_name}: {response.status_code} - {response.text}")
+                return False
+
+            # Process the streaming response
+            creation_successful = False
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        status_obj = json.loads(line.decode('utf-8'))
+                        status_message_raw = status_obj.get("status") # Get raw status
+                        
+                        # Log the raw status for better debugging
+                        logger.info(f"Model creation status for {model_name} (raw): {status_message_raw}")
+
+                        # Log the error field if present in the status object
+                        if "error" in status_obj:
+                            logger.error(f"Ollama model creation error details for {model_name}: {status_obj.get('error')}")
+
+                        if isinstance(status_message_raw, str):
+                            status_message_str = status_message_raw
+                            # Check for various success messages that might indicate completion
+                            if "success" in status_message_str.lower() and len(status_obj) == 1: # Specifically {"status": "success"}
+                                logger.info(f"Model creation for {model_name} reported final success via string status.")
+                                creation_successful = True
+                                break # Success confirmed by a simple "success" status message
+                            elif "verifying sha256 digest" in status_message_str.lower():
+                                logger.info(f"Model {model_name}: Verification of sha256 digest in progress...")
+                                # This is an intermediate step, continue processing
+                            elif "writing manifest" in status_message_str.lower():
+                                logger.info(f"Model {model_name}: Writing manifest...")
+                                # This is an intermediate step, continue processing
+                            elif "removing" in status_message_str.lower() and "temp" in status_message_str.lower():
+                                logger.info(f"Model {model_name}: Cleaning up temporary files...")
+                                # This is an intermediate step, continue processing
+                            # Add other known intermediate string statuses if necessary
+                            
+                            # If it's a string but not a known success or intermediate message, log it but don't assume error yet
+                            # unless it's the only thing we get and it doesn't look like progress.
+                            # The loop will continue, and `creation_successful` remains False unless explicitly set.
+
+                        elif isinstance(status_message_raw, int): # Typically error codes from Ollama like 400, 500
+                            logger.error(f"Model creation for {model_name} received integer status: {status_message_raw}. Treating as error.")
+                            creation_successful = False
+                            break # Stop processing stream on integer status code
+                        
+                        elif status_obj.get("digest") and status_obj.get("total") and status_obj.get("completed"):
+                            # This is a progress object, e.g. {"status":"pulling manifest","digest":"sha256:...", "total":12345, "completed":1234}
+                            # For creation, this might be less common than for pulling, but good to log progress
+                            progress = (status_obj.get("completed", 0) / status_obj.get("total", 1)) * 100
+                            logger.info(f"Model creation progress for {model_name}: {status_message_raw} - {progress:.2f}%")
+                            # Check if "completed" equals "total" as a success condition
+                            if status_obj.get("completed") == status_obj.get("total") and status_obj.get("total", 0) > 0:
+                                logger.info(f"Model creation for {model_name} implied success from progress data (completed == total).")
+                                # Sometimes the final "status":"success" is missing, this can be a backup
+                                # However, rely on explicit success or wait for stream end if this is not the final message.
+                                # For now, we don't set creation_successful = True solely based on this,
+                                # to avoid premature success declaration if more critical messages follow.
+
+
+                        else: # Not a string, not an int, not a known progress object - unexpected format
+                            logger.warning(f"Model creation for {model_name} returned unknown status format: {status_message_raw}. Full object: {status_obj}")
+                            # If not already marked successful by a previous message, keep creation_successful as False or let it be set by later messages.
+                            # No break here, to allow processing further messages if any.
+
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to decode JSON from model creation stream for {model_name}: {line.decode('utf-8')}, Error: {e}")
+                        # Continue to next line if possible, or break if this indicates a fatal stream error
+                        # For now, we continue, but this could be a point of failure.
+                    except Exception as e:
+                        logger.error(f"Error processing model creation stream for {model_name}: {e}")
+                        creation_successful = False # Unhandled error during stream processing
+                        break
+            
+            # After the loop, check the final status
+            if creation_successful:
+                logger.info(f"OllamaHandler: Successfully created specialized model: {model_name}")
+            else:
+                logger.error(f"Model creation stream for {model_name} did not end with a recognized success status or encountered an error.")
+
+            return creation_successful
+                
+        except requests.exceptions.RequestException as e: # More specific exception for network/request issues
+            logger.error(f"RequestException creating model {model_name}: {str(e)}")
+            return False
+        except Exception as e:
+            logger.error(f"Generic error creating model {model_name}: {str(e)}")
+            return False
         
     def wait_for_initialization(self, timeout=None):
         """
@@ -486,8 +798,8 @@ class OllamaHandler:
             bool: True if Ollama is available, False otherwise
         """
         # Skip check if circuit is open
-        if not self.tags_circuit.can_execute():
-            logger.warning("Skipping availability check: circuit is OPEN")
+        if not self.availability_circuit.can_execute():
+            logger.warning("Skipping availability check: availability_circuit is OPEN")
             return False
             
         try:
@@ -498,13 +810,13 @@ class OllamaHandler:
             success, response = self._retry_operation(get_tags)
             
             if not success:
-                logger.warning(f"Failed to connect to Ollama after {self.retry_attempts} attempts")
-                self.tags_circuit.on_failure()
+                logger.warning(f"Failed to connect to Ollama (tags endpoint) after {self.retry_attempts} attempts")
+                self.availability_circuit.on_failure()
                 return False
                 
             if response.status_code != 200:
-                logger.warning(f"Ollama returned non-200 status: {response.status_code}")
-                self.tags_circuit.on_failure()
+                logger.warning(f"Ollama (tags endpoint) returned non-200 status: {response.status_code}")
+                self.availability_circuit.on_failure()
                 return False
             
             # Step 2: Try to get the list of models
@@ -515,12 +827,12 @@ class OllamaHandler:
                 # Ensure there's at least one model available
                 if "models" not in tags_data or not tags_data["models"]:
                     logger.warning("No models available in Ollama")
-                    self.tags_circuit.on_failure()
+                    self.availability_circuit.on_failure()
                     return False
                     
             except json.JSONDecodeError:
                 logger.warning("Failed to parse Ollama tags response as JSON")
-                self.tags_circuit.on_failure()
+                self.availability_circuit.on_failure()
                 return False
             
             # Step 3: Test minimal generation with the first available model
@@ -547,7 +859,7 @@ class OllamaHandler:
             
             if not success:
                 logger.warning("Generate test failed after retries")
-                self.tags_circuit.on_failure()
+                self.availability_circuit.on_failure()
                 return False
                 
             logger.info(f"Ollama API test response status: {test_response.status_code}")
@@ -555,12 +867,12 @@ class OllamaHandler:
             if test_response.status_code == 404:
                 # Log error details
                 logger.warning(f"API endpoint not found. Response: {test_response.text}")
-                self.tags_circuit.on_failure()
+                self.availability_circuit.on_failure()
                 return False
             
             if test_response.status_code != 200:
                 logger.warning(f"Ollama API test failed with status: {test_response.status_code}")
-                self.tags_circuit.on_failure()
+                self.availability_circuit.on_failure()
                 return False
                 
             # Try to parse the response as JSON
@@ -570,22 +882,36 @@ class OllamaHandler:
                 
                 if "response" not in test_result:
                     logger.warning("Ollama API test returned unexpected response format")
-                    self.tags_circuit.on_failure()
+                    self.availability_circuit.on_failure()
                     return False
                     
                 # All checks passed, mark as success
-                self.tags_circuit.on_success()
+                self.availability_circuit.on_success()
                 return True
                 
             except json.JSONDecodeError:
                 logger.warning("Failed to parse Ollama test response as JSON")
-                self.tags_circuit.on_failure()
+                self.availability_circuit.on_failure()
                 return False
                 
         except Exception as e:
             logger.warning(f"Ollama availability check failed: {str(e)}")
-            self.tags_circuit.on_failure()
+            self.availability_circuit.on_failure()
             return False
+    
+    def generate_response_with_specialized_model(self, prompt: str, query_type: str = "general_query", model_name: Optional[str] = None, temperature: Optional[float] = None, max_tokens: Optional[int] = None, stream: bool = False) -> Optional[str]:
+        """Generates a response using a specialized model if available, otherwise falls back to the default model."""
+        # Use the provided model_name, or the specialized model for the query_type, or the handler's default model
+        target_model_name = model_name or self.specialized_models.get(query_type, self.default_model_name)
+
+        if not target_model_name:
+            logger.error("[OLLAMA_HANDLER] No target model could be determined (specialized or default). Cannot generate response.")
+            return None
+
+        logger.info(f"[OLLAMA_HANDLER] Using model '{target_model_name}' for query_type '{query_type}' (specialized lookup: {self.specialized_models.get(query_type)}, explicit model_name: {model_name})")
+        
+        # Generate response using the selected model
+        return self.generate_response(prompt=prompt, model=target_model_name, temperature=temperature, max_tokens=max_tokens)
     
     def _validate_and_clean_response(self, response_text, query=None):
         """
@@ -935,6 +1261,27 @@ class OllamaHandler:
             self.tags_circuit.on_failure()
             return []
             
+    @record_llm_performance
+    def generate_response_with_specialized_model(self, prompt, query_type):
+        """
+        Generate a response using the appropriate specialized model for the query type
+        
+        Args:
+            prompt: The prompt to send to the model
+            query_type: The type of query (pest_identification, pest_management, etc.)
+            
+        Returns:
+            The generated response text or None if an error occurred
+        """
+        # Select the appropriate model based on query type
+        default_model = self.ollama_model if hasattr(self, 'ollama_model') else self.default_model_name
+        model = self.specialized_models.get(query_type, default_model)
+        
+        logger.info(f"[OLLAMA_HANDLER] Using model '{model}' for query_type '{query_type}' (specialized lookup: {self.specialized_models.get(query_type, 'not found')}, explicit model_name: None)")
+        
+        # Generate response using the selected model
+        return self.generate_response(prompt=prompt, model=model)
+        
     def health_check(self) -> Dict[str, Any]:
         """
         Perform a health check on the Ollama service.
@@ -951,5 +1298,6 @@ class OllamaHandler:
             "models": models,
             "tags_circuit": self.tags_circuit.get_state(),
             "generate_circuit": self.generate_circuit.get_state(),
+            "availability_circuit": self.availability_circuit.get_state(),
             "last_success": self.last_success_time.isoformat() if self.last_success_time else None,
         } 

@@ -1,0 +1,203 @@
+name: FarmLore CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest pytest-cov flake8
+      
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      
+      - name: Test with pytest
+        run: |
+          pytest --cov=api --cov-report=xml
+      
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  build:
+    name: Build Docker Images
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Extract metadata for API image
+        id: meta-api
+        uses: docker/metadata-action@v4
+        with:
+          images: yourusername/farmlore-api
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+      
+      - name: Build and push API image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./pest-management-chatbot/farmlore-project
+          file: ./pest-management-chatbot/farmlore-project/Dockerfile
+          push: true
+          tags: ${{ steps.meta-api.outputs.tags }}
+          labels: ${{ steps.meta-api.outputs.labels }}
+          cache-from: type=registry,ref=yourusername/farmlore-api:buildcache
+          cache-to: type=registry,ref=yourusername/farmlore-api:buildcache,mode=max
+      
+      - name: Extract metadata for Ollama image
+        id: meta-ollama
+        uses: docker/metadata-action@v4
+        with:
+          images: yourusername/farmlore-ollama
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+      
+      - name: Build and push Ollama image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./pest-management-chatbot/farmlore-project/ollama
+          file: ./pest-management-chatbot/farmlore-project/ollama/Dockerfile
+          push: true
+          tags: ${{ steps.meta-ollama.outputs.tags }}
+          labels: ${{ steps.meta-ollama.outputs.labels }}
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Update deployment image
+        run: |
+          # Update API deployment
+          kubectl set image deployment/farmlore-api farmlore-api=yourusername/farmlore-api:sha-${{ github.sha }} -n farmlore-staging
+          
+          # Update Ollama deployment
+          kubectl set image deployment/farmlore-ollama farmlore-ollama=yourusername/farmlore-ollama:sha-${{ github.sha }} -n farmlore-staging
+      
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/farmlore-api -n farmlore-staging
+          kubectl rollout status deployment/farmlore-ollama -n farmlore-staging
+      
+      - name: Run model tests
+        run: |
+          # Wait for services to be ready
+          sleep 30
+          
+          # Get the API endpoint
+          API_URL=$(kubectl get svc farmlore-api -n farmlore-staging -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          
+          # Run model tests against the staging environment
+          curl -X POST "http://$API_URL:8000/api/v1/test/models" -H "Content-Type: application/json" -d '{"run_all": true}'
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://farmlore.yourdomain.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+      
+      - name: Update deployment image
+        run: |
+          # Update API deployment
+          kubectl set image deployment/farmlore-api farmlore-api=yourusername/farmlore-api:sha-${{ github.sha }} -n farmlore-production
+          
+          # Update Ollama deployment
+          kubectl set image deployment/farmlore-ollama farmlore-ollama=yourusername/farmlore-ollama:sha-${{ github.sha }} -n farmlore-production
+      
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/farmlore-api -n farmlore-production
+          kubectl rollout status deployment/farmlore-ollama -n farmlore-production
+      
+      - name: Run smoke tests
+        run: |
+          # Wait for services to be ready
+          sleep 30
+          
+          # Get the API endpoint
+          API_URL=$(kubectl get svc farmlore-api -n farmlore-production -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          
+          # Run basic health check
+          curl -f "http://$API_URL:8000/api/v1/health"
+          
+          # Run model health check
+          curl -f "http://$API_URL:8000/api/v1/models/health"

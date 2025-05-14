@@ -1,0 +1,19 @@
+# Import everything from the parent views.py
+from api.views import (
+    predict, 
+    available_values, 
+    search_pests, 
+    search_methods, 
+    search_soil,
+    chat_api, 
+    feedback_api, 
+    DatasetViewSet,
+    TrainedModelViewSet, 
+    HybridEngineView, 
+    EngineStatsView,
+    health_check, 
+    model_health, 
+    test_models, 
+    debug_hybrid_engine, 
+    test_endpoint
+)

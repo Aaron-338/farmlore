@@ -18,9 +18,9 @@ services:
       - DB_PASSWORD=postgres
       - DB_HOST=db
       - DB_PORT=5432
-      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1] web nginx
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1] web nginx 192.168.137.1
       - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=tinyllama:latest
+      - OLLAMA_MODEL=tinyllama
       - USE_OLLAMA=true
       - USE_PROLOG_PRIMARY=true
     depends_on:
@@ -86,21 +86,23 @@ services:
           memory: 256M
 
   ollama:
-    image: ollama/ollama:latest
+    build:
+      context: ./pest-management-chatbot/farmlore-project
+      dockerfile: ollama/Dockerfile
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./pest-management-chatbot/farmlore-project/healthcheck_ollama.sh:/healthcheck.sh
+      - ./pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles:/modelfiles
     environment:
       - OLLAMA_HOST=0.0.0.0
     restart: always
     healthcheck:
-      test: ["CMD", "sh", "/healthcheck.sh"]
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
       interval: 30s
-      timeout: 20s
-      retries: 10
-      start_period: 120s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - farmlore_network
 

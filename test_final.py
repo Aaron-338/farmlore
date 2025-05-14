@@ -5,6 +5,8 @@ import os
 import sys
 import logging
 import time
+import requests
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -55,7 +57,6 @@ def test_prolog_engine():
         logging.info("Ollama not available. Trying to manually check with longer timeout...")
         
         # Try to access the Ollama API directly
-        import requests
         try:
             # First try the tags endpoint
             response = requests.get(engine.ollama_handler.api_tags, timeout=5)
@@ -123,4 +124,34 @@ if __name__ == "__main__":
     patch_ollama_handler()
     
     # Then test the PrologEngine
-    test_prolog_engine() 
+    test_prolog_engine()
+
+print("\n===== TESTING FARMLORE API =====\n")
+
+# Test direct access to the web container
+try:
+    print("Testing direct access to web container...")
+    response = requests.post("http://localhost:8000/api/chat/", 
+                           json={"message": "Hello"}, 
+                           timeout=5)
+    print(f"Status: {response.status_code}")
+    print("Response:")
+    print(json.dumps(response.json(), indent=2))
+except Exception as e:
+    print(f"Error with direct access: {str(e)}")
+
+print("\n------------------------------\n")
+
+# Test access through nginx
+try:
+    print("Testing access through nginx...")
+    response = requests.post("http://localhost:80/api/chat/", 
+                           json={"message": "Hello"}, 
+                           timeout=5)
+    print(f"Status: {response.status_code}")
+    print("Response:")
+    print(json.dumps(response.json(), indent=2))
+except Exception as e:
+    print(f"Error with nginx access: {str(e)}")
+
+print("\n===== TEST COMPLETE =====\n") 

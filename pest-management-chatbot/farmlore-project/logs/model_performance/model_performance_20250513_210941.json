@@ -1,0 +1,27 @@
+{
+  "response_times": {
+    "farmlore-hybrid": [
+      44.998640060424805
+    ]
+  },
+  "token_usage": {
+    "farmlore-hybrid": [
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      }
+    ]
+  },
+  "success_rates": {
+    "farmlore-hybrid": {
+      "success": 1,
+      "failure": 0
+    }
+  },
+  "usage_frequency": {
+    "farmlore-hybrid": 1,
+    "general_query": 1
+  },
+  "user_feedback": {}
+}

@@ -198,8 +198,16 @@ def detect_prompt_type(query: str) -> PromptType:
     """
     query_lower = query.lower()
     
-    # Pest identification keywords
-    if any(term in query_lower for term in ["identify", "what pest", "what insect", "what disease"]):
+    # Pest identification keywords and patterns
+    pest_id_keywords = [
+        "identify", "what pest", "what insect", "what disease", "what bug", 
+        "found insects", "found bugs", "found pests", "insect on", "bug on", "pest on",
+        "insects on my", "bugs on my", "pests on my", "eating my plant", "eating my crop",
+        "damaging my", "holes in leaves", "yellowing leaves", "spots on leaves",
+        "what is this", "what are these", "can you identify", "help identify"
+    ]
+    
+    if any(term in query_lower for term in pest_id_keywords):
         return PromptType.PEST_IDENTIFICATION
     
     # Pest management keywords

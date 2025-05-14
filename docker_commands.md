@@ -187,6 +187,32 @@ docker-compose exec web python manage.py check
 docker system prune -a
 ```
 
+## Ollama Service Management
+
+Commands specific to the `ollama` service and its custom models:
+
+```bash
+# View logs for the Ollama service
+docker-compose logs -f ollama
+
+# Rebuild the Ollama service image (if you updated modelfiles)
+docker-compose build ollama
+docker-compose up -d ollama # Then restart it
+# Or, more simply, rebuild and restart all services if needed:
+docker-compose up -d --build
+
+# Check available models within the Ollama service
+docker-compose exec ollama ollama list
+
+# Remove a specific model from Ollama (if needed for a clean rebuild by Ollama itself)
+# Note: The application (OllamaHandler) is designed to detect existing models.
+# Manual removal might be for specific Ollama troubleshooting.
+docker-compose exec ollama ollama rm your-model-name:latest
+
+# Pull a base model (if required by your custom modelfiles)
+docker-compose exec ollama ollama pull tinyllama:latest
+```
+
 ## Quick Reference for Common Tasks
 
 | Task | Command |

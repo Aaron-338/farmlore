@@ -364,7 +364,7 @@
         
         // Function to fetch engine stats
         function fetchEngineStats() {
-            fetch('/api/hybrid/stats/')
+            fetch('/api/engine-stats/')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.stats) {

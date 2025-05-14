@@ -7,10 +7,13 @@ env = environ.Env(
     DEBUG=(bool, False),
     DB_NAME=(str, 'farmlore'),
     DB_USER=(str, 'postgres'),
-    DB_PASSWORD=(str, 'Releb0hile'),
-    DB_HOST=(str, 'localhost'),
+    DB_PASSWORD=(str, 'postgres'),  # Changed to match docker-compose.yml
+    DB_HOST=(str, 'db'),  # Changed from 'localhost' to 'db' for Docker Compose
     DB_PORT=(str, '5432'),
-    DISABLE_PROLOG=(bool, False)
+    DISABLE_PROLOG=(bool, False),
+    USE_OLLAMA=(bool, True),
+    OLLAMA_BASE_URL=(str, 'http://ollama:11434'),
+    OLLAMA_MODEL=(str, 'farmlore-general')
 )
 
 # Build paths inside the project
@@ -155,3 +158,12 @@ DATASET_URLS = {
 # Authentication settings
 LOGIN_REDIRECT_URL = '/community/'
 LOGOUT_REDIRECT_URL = '/'
+
+# API version and environment
+API_VERSION = '1.0.0'
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+
+# Ollama settings
+USE_OLLAMA = env('USE_OLLAMA')
+OLLAMA_BASE_URL = env('OLLAMA_BASE_URL')
+OLLAMA_MODEL = env('OLLAMA_MODEL')

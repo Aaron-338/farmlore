@@ -1,0 +1,84 @@
+{
+  "response_times": {
+    "farmlore-hybrid": [
+      0.0022864341735839844,
+      0.0913233757019043,
+      0.03714251518249512,
+      0.0642848014831543,
+      0.0458528995513916
+    ],
+    "unknown": [
+      6.270408630371094e-05,
+      4.410743713378906e-05,
+      0.0002713203430175781,
+      7.271766662597656e-05
+    ]
+  },
+  "token_usage": {
+    "farmlore-hybrid": [
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      }
+    ],
+    "unknown": [
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      },
+      {
+        "input": 0,
+        "output": 0,
+        "total": 0
+      }
+    ]
+  },
+  "success_rates": {
+    "farmlore-hybrid": {
+      "success": 5,
+      "failure": 0
+    },
+    "unknown": {
+      "success": 0,
+      "failure": 4
+    }
+  },
+  "usage_frequency": {
+    "farmlore-hybrid": 5,
+    "general_query": 5,
+    "unknown": 8
+  },
+  "user_feedback": {}
+}

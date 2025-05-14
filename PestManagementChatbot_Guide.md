@@ -8,11 +8,11 @@ This pest management chatbot leverages indigenous agricultural knowledge for pes
 
 ### 1. Docker Container Architecture
 
-The system uses Docker Compose with four main services:
+The system uses Docker Compose with four main services defined in the root `docker-compose.yml`:
 - `web`: Django application running the main system (Python 3.10)
 - `db`: PostgreSQL 14 database for data storage
 - `nginx`: Web server handling HTTP requests and serving static files
-- `ollama`: Language model service for advanced reasoning capabilities (newly added)
+- `ollama`: Service running Ollama. This service's Docker image is custom-built to include specialized models defined by local modelfiles.
 
 ### 2. Core Application Structure
 
@@ -45,16 +45,18 @@ The system uses Docker Compose with four main services:
   - Located in `/app/api/inference_engine/hybrid_engine.py`
   - Combines rule-based and ML approaches
   - Uses `PrologEngine` for logical reasoning
+  - Interacts with `OllamaHandler` for LLM capabilities
 
 - `PrologEngine`: Handles rule-based reasoning
   - Located in `/app/api/inference_engine/prolog_engine.py`
-  - Currently uses a mock implementation
-  - Can be configured to use Ollama for more advanced reasoning
+  - Currently uses a mock implementation (Note: Verify current status of Prolog integration)
+  - Can be configured to use Ollama for more advanced reasoning (Note: Clarify if this is primary or supplemental)
 
-- `OllamaEngine` (newly added):
+- `OllamaHandler` (formerly referred to as OllamaEngine in some diagrams):
   - Connects to the Ollama service for LLM capabilities
   - Uses environment variables for configuration
   - Can be enabled/disabled via the `USE_OLLAMA` environment variable
+  - Manages interaction with both base and specialized Ollama models.
 
 #### Web Application Architecture
 - Django application structure follows MVT (Model-View-Template) pattern
@@ -68,23 +70,24 @@ The system uses Docker Compose with four main services:
 
 ```
 +------------------+         +----------------------+         +------------------+
-|   HybridEngine   |         |    PrologEngine      |         |   OllamaEngine   |
+|   HybridEngine   |         |    PrologEngine      |         |   OllamaHandler   |
 +------------------+         +----------------------+         +------------------+
 | - prolog_engine  |<>------>| - prolog/ollama      |<------->| - base_url       |
 +------------------+         +----------------------+         | - model          |
-| + __init__()     |         | + __init__()         |         +------------------+
-| + query()        |         | + load_knowledge()   |         | + __init__()     |
-| + _mock_pest_id()|         | + query()            |         | + _pull_model()  |
-| + _mock_control()|         | + assert_fact()      |         | + query()        |
-| + _mock_crop()   |         | + consult_file()     |         +------------------+
-| + _mock_indig()  |         +----------------------+
-+------------------+                   ^
-                                       |
-                                       |
+| - ollama_handler |         | + __init__()         |         +------------------+
+| + __init__()     |         | + load_knowledge()   |         | + __init__()     |
+| + query()        |         | + query()            |         | + _check_availability() |
+| + _mock_pest_id()|         | + assert_fact()      |         | + generate_response() |
+| + _mock_control()|         | + consult_file()     |         +------------------+
+| + _mock_crop()   |         +----------------------+
+        ^
+| + _mock_indig()  |                                       |
++------------------+                                       |
+                                                          |
++------------------+         +----------------------+     |
+|  Prolog (Mock)   |<>------>|    API Views         |     |
 +------------------+         +----------------------+
-|  Prolog (Mock)   |<>------>|    API Views         |
-+------------------+         +----------------------+
-| - facts          |         | - engine: HybridEngine|
+    |         | - engine: HybridEngine|-----+
 +------------------+         +----------------------+
 | + __init__()     |         | + pest_id_api()      |
 | + consult()      |         | + control_methods()  |
@@ -108,7 +111,7 @@ The system uses Docker Compose with four main services:
 
 ```
 +----------+    +----------+    +-------------+    +-------------+    +-------------+
-|  User    |    |  Views   |    | HybridEngine|    | PrologEngine|    | OllamaEngine|
+|  User    |    |  Views   |    | HybridEngine|    | PrologEngine|    | OllamaHandler|
 +----------+    +----------+    +-------------+    +-------------+    +-------------+
      |               |                |                  |                  |
      | Query         |                |                  |                  |
@@ -158,24 +161,32 @@ The system uses Docker Compose with four main services:
 
 ```
 +----------+    +----------+    +-------------+    +-------------+    +-------------+
-|  System  |    |  Django  |    | HybridEngine|    | PrologEngine|    | OllamaEngine|
+|  System  |    |  Django  |    | HybridEngine|    | PrologEngine|    | OllamaHandler|
 +----------+    +----------+    +-------------+    +-------------+    +-------------+
      |               |                |                  |                  |
      | Start         |                |                  |                  |
      | containers    |                |                  |                  |
+     | (docker compose up --build)|   |                  |                  |
      |-------------->|                |                  |                  |
      |               | initialize app |                  |                  |
+     |               | (web service)  |                  |                  |
      |               |--------------->|                  |                  |
-     |               |                | create engine    |                  |
+     |               |                | create HybridEngine |                  |
+     |               |                | (uses OllamaHandler) |                  |
      |               |                |----------------->|                  |
-     |               |                |                  | check USE_OLLAMA |
-     |               |                |                  |------------------>
+     |               |                |                  | (OllamaHandler   |
+     |               |                |                  |  initializes,    |
+     |               |                |                  |  checks Ollama   |
+     |               |                |                  |  service which   |
+     |               |                |                  |  has pre-built   |
+     |               |                |                  |  custom models)  |
+     |               |                |                  |----------------->|
      |               |                |                  |                  | connect
      |               |                |                  |                  | to Ollama
-     |               |                |                  |                  |<-------->
+     |               |                |                  |                  |<--------->
      |               |                |                  |                  | check
      |               |                |                  |                  | models
-     |               |                |                  |                  |<-------->
+     |               |                |                  |                  |<--------->
      |               |                |                  |<-----------------|
      |               |                |<-----------------|                  |
      |               |<---------------|                  |                  |
@@ -187,17 +198,18 @@ The system uses Docker Compose with four main services:
 
 ### Starting the Application
 
-1. Start all containers:
-   ```bash
-   docker compose up -d
-   ```
+1.  Navigate to the **project root directory** (where the main `docker-compose.yml` is located).
+2.  Start all containers (this will also build the `ollama` service with custom models if not already built):
+    ```bash
+    docker-compose up -d --build
+    ```
 
-2. Check running containers:
+3.  Check running containers:
    ```bash
    docker compose ps
    ```
 
-3. View logs:
+4.  View logs:
    ```bash
    docker compose logs web
    ```
@@ -206,30 +218,38 @@ The system uses Docker Compose with four main services:
 
 - Web Interface: http://localhost
 - Admin Interface: http://localhost/admin/
-- API Endpoints: http://localhost/api/
+- API Endpoints: http://localhost/api/ (e.g., http://localhost/api/chat/)
 
 ### Using the Ollama Integration
 
 The system is now configured to use Ollama when available. Key points:
 
-1. Environment variables control Ollama usage:
-   - `USE_OLLAMA=true`: Enables Ollama integration
-   - `OLLAMA_BASE_URL=http://ollama:11434`: Points to the Ollama service
+1.  The root `docker-compose.yml` defines an `ollama` service. This service has a `build` instruction that creates a custom Docker image. During this build, modelfiles from `pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles/` are copied into the image. When the `ollama` service container starts, Ollama automatically discovers these modelfiles and creates the specialized models (e.g., `farmlore-pest-id`, `farmlore-pest-mgmt`).
+2.  Environment variables in the `web` service control Ollama usage at runtime:
+    *   `USE_OLLAMA=true`: Enables Ollama integration in the `HybridEngine`.
+    *   `OLLAMA_BASE_URL=http://ollama:11434`: Points the `OllamaHandler` to the Ollama service.
 
-2. When Ollama is enabled, the system will:
-   - Connect to the Ollama service during startup
-   - Use the Ollama LLM for inference instead of the mock implementation
-   - Fall back to the mock implementation if Ollama is unavailable
+3.  When Ollama is enabled, the `OllamaHandler` will:
+    *   Connect to the Ollama service during its initialization.
+    *   Verify the availability of the specialized models (which should have been pre-built by the `ollama` service itself).
+    *   Use the appropriate Ollama LLM for inference.
+    *   Fall back to alternative logic (e.g., mock responses or Prolog an RASA if configured) if Ollama is unavailable or a specific model isn't found.
 
-3. To check if Ollama is being used:
-   ```bash
-   docker compose logs web | grep -i ollama
-   ```
+4.  To check if Ollama is being used by the `web` service:
+    ```bash
+    docker-compose logs web | grep -i ollama
+    ```
+    To check the logs of the `ollama` service itself (useful for seeing model creation messages):
+    ```bash
+    docker-compose logs ollama
+    ```
 
-4. To pull a specific model:
-   ```bash
-   docker compose exec ollama ollama pull llama2
-   ```
+5.  **Managing Models:**
+    *   **Specialized Models** (e.g., `farmlore-pest-id`): These are defined by files in `pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles/`. To update them, edit the corresponding modelfile and then rebuild and restart the services: `docker-compose up -d --build`. No `ollama pull` is needed for these.
+    *   **Base Models** (e.g., `tinyllama:latest` if used in a `FROM` directive in your modelfiles): If a base model is not present in your Ollama service, you can pull it once:
+        ```bash
+        docker-compose exec ollama ollama pull tinyllama:latest
+        ```
 
 ### Database Migrations
 
@@ -269,7 +289,7 @@ docker compose exec web python manage.py migrate
 
 ## Next Steps for Development
 
-1. **Complete Ollama Integration**: Finish implementing the real `OllamaEngine` class in the same directory as `prolog_engine.py`
+1. **Complete Ollama Integration**: Finish implementing the real `OllamaHandler` class in the same directory as `prolog_engine.py`
 
 2. **Test LLM Functionality**: Once implemented, test the chatbot with real LLM-powered responses
 
@@ -279,9 +299,9 @@ docker compose exec web python manage.py migrate
 
 The foundation is now set with the Docker architecture updated to include Ollama. The next step is implementing the actual integration code within the application.
 
-## Implementing OllamaEngine
+## Implementing OllamaHandler
 
-To complete the integration, you need to create the `ollama_engine.py` file in the same directory as `prolog_engine.py`. Here's the implementation:
+To complete the integration, you need to create the `ollama_handler.py` file in the same directory as `prolog_engine.py`. Here's the implementation:
 
 ```python
 """
@@ -292,11 +312,11 @@ import logging
 import requests
 import json
 
-class OllamaEngine:
+class OllamaHandler:
     def __init__(self):
         self.base_url = os.environ.get('OLLAMA_BASE_URL', 'http://localhost:11434')
         self.model = os.environ.get('OLLAMA_MODEL', 'llama2')
-        logging.info(f"Initializing Ollama Engine with model {self.model} at {self.base_url}")
+        logging.info(f"Initializing Ollama Handler with model {self.model} at {self.base_url}")
         
         # Test connection
         try:

@@ -8,6 +8,7 @@ import json
 from typing import Dict, List, Any, Optional, Union, Tuple
 import time
 from functools import lru_cache
+from django.conf import settings
 
 # Revert to direct import as relative import failed in container
 from prolog_integration.service import PrologService
@@ -20,8 +21,17 @@ from api.monitoring import record_query_performance
 # Define keywords for clarification logic (expand these lists as needed)
 VAGUE_SYMPTOM_WORDS = ["spots", "yellow leaves", "sick", "dying", "problem", "disease", "issue", "blight", "wilt", "rust", "mold", "rot", "lesions", "stunted"]
 VAGUE_PEST_WORDS = ["pests", "bugs", "insects", "infestation"]
-KNOWN_CROP_NAMES = ["maize", "corn", "cabbage", "potato", "tomato", "rice", "beans"]
+KNOWN_CROP_NAMES = [
+    "maize", "corn", "cabbage", "potato", "tomato", "tomatoes", "rice", "beans", 
+    "carrot", "carrots", "apple", "apples", "lettuce", "spinach", "pepper", "peppers", 
+    "cucumber", "cucumbers", "strawberry", "strawberries", "grape", "grapes",
+    "onion", "onions", "garlic", "broccoli", "cauliflower", "squash", "pumpkin",
+    "wheat", "barley", "oats", "soybean", "soybeans", "sunflower", "cotton"
+]
 # TODO: Consider loading KNOWN_CROP_NAMES dynamically from Prolog KB if possible
+
+# Set up logging for this module
+logger = logging.getLogger(__name__)
 
 class HybridEngine:
     """
@@ -52,11 +62,11 @@ class HybridEngine:
         self.ollama_for_complex_only = self.use_prolog_as_primary
         
         if self.use_ollama:
-            logging.info(f"Initializing with Ollama integration at {self.ollama_url} using model {self.ollama_model}")
+            logger.info(f"Initializing with Ollama integration at {self.ollama_url} using model {self.ollama_model} as default.")
             # Use the OllamaHandler's non-blocking initialization
-            self.ollama_handler = OllamaHandler(base_url=self.ollama_url)
+            self.ollama_handler = OllamaHandler(base_url=self.ollama_url, default_model_name=self.ollama_model)
             # Non-blocking initialization happens automatically in the OllamaHandler constructor
-            logging.info("Ollama integration initialized in non-blocking mode. The web server will start while Ollama initializes in the background.")
+            logger.info("Ollama integration initialized in non-blocking mode. The web server will start while Ollama initializes in the background.")
             if self.use_prolog_as_primary:
                 logging.info("Using Prolog as primary engine. Ollama will only be used for complex queries.")
         else:
@@ -73,27 +83,44 @@ class HybridEngine:
         
         logging.info("HybridEngine initialized successfully")
     
-    def is_initialization_complete(self, timeout=None):
+    def is_initialization_complete(self, wait_timeout: Optional[float] = None):
         """
         Check if the Ollama handler has completed initialization.
+        If wait_timeout is provided, it will wait for the OllamaHandler.
         
         Args:
-            timeout: Maximum time to wait in seconds, or None to just check current status
+            wait_timeout: Maximum time to wait in seconds for OllamaHandler initialization.
+                          If None, checks current status without waiting.
             
         Returns:
-            tuple: (is_complete, is_successful) indicating if initialization is complete and if it was successful
+            tuple: (is_ready: bool, status_message: str)
         """
         if not self.use_ollama or self.ollama_handler is None:
-            # If Ollama is not enabled, initialization is "complete and successful"
-            return True, True
+            return True, "Ollama not in use."
             
-        if timeout is not None:
-            # Wait for initialization with timeout
-            success = self.ollama_handler.wait_for_initialization(timeout=timeout)
-            return self.ollama_handler._initialization_complete.is_set(), success
+        # If a wait_timeout is provided, call OllamaHandler's wait_for_initialization
+        if wait_timeout is not None:
+            logger.info(f"HybridEngine: Waiting up to {wait_timeout}s for Ollama handler initialization...")
+            initialization_was_successful_after_wait = self.ollama_handler.wait_for_initialization(timeout=wait_timeout)
+            is_complete_after_wait = self.ollama_handler._initialization_complete.is_set()
+            logger.info(f"HybridEngine: After wait, Ollama handler complete={is_complete_after_wait}, success={initialization_was_successful_after_wait}")
+            if not is_complete_after_wait:
+                return False, "Ollama handler initialization timed out."
+            if not initialization_was_successful_after_wait:
+                 return True, "Ollama handler initialization completed but reported failure. Check Ollama service."
+            return True, "Ollama handler initialized successfully after wait."
+
+        # If no wait_timeout, just check current status
+        is_complete_now = self.ollama_handler._initialization_complete.is_set()
+        initialization_was_successful_now = self.ollama_handler._initialization_success
+
+        if is_complete_now:
+            if initialization_was_successful_now:
+                return True, "Ollama handler initialized successfully."
+            else:
+                return True, "Ollama handler initialization failed. Check Ollama service."
         else:
-            # Just check current status without waiting
-            return self.ollama_handler._initialization_complete.is_set(), self.ollama_handler._initialization_success
+            return False, "Ollama handler is still initializing. Please try again shortly."
     
     @record_query_performance
     def query(self, query_type: str, params: Optional[Dict] = None) -> Dict[str, Any]:
@@ -107,19 +134,37 @@ class HybridEngine:
         Returns:
             dict: Results of the query
         """
+        user_query = params.get("message") or params.get("query") if params else None
+        logger.info(f"HybridEngine query: {query_type} with params: {params}")
+
+        # Step 1: Wait for the engine to be fully initialized (up to 45 seconds)
+        # Increased timeout as Ollama first model load can be slow.
+        is_ready, status_message = self.is_initialization_complete(wait_timeout=45.0)
+        if not is_ready:
+            logger.warning(f"HybridEngine not ready after wait: {status_message}. Returning initialization status.")
+            return {"response": status_message, "source": "hybrid_engine_initializing_timeout", "success": False}
+        elif "failure" in status_message or "failed" in status_message: # Check if init completed but failed
+            logger.warning(f"HybridEngine initialization completed but failed: {status_message}. Returning status.")
+            return {"response": status_message, "source": "hybrid_engine_initialization_failed", "success": False}
+
         self.query_count += 1
         params = params or {}
         
         logging.info(f"Processing query of type: {query_type} with params: {params}")
         
         # Check if we've seen a similar query before
-        user_query = params.get("query", "")
         if user_query:
             similar_result = self.similar_query_detector.find_similar_query(user_query)
             if similar_result:
                 self.cache_hit_count += 1
-                logging.info(f"Found similar query in cache. Similarity: {similar_result[2]:.2f}")
-                return {"response": similar_result[1], "source": "cache"}
+                # Check if similar_result has the expected structure (query, response, score)
+                if isinstance(similar_result, tuple) and len(similar_result) == 3:
+                    logging.info(f"Found similar query in cache. Similarity: {similar_result[2]:.2f}")
+                    # Cache hit: Use the cached response directly
+                    return {"response": similar_result[1], "source": "cache", "success": True}
+                else:
+                    # Log an error if the structure is unexpected, then proceed without using this cache entry
+                    logging.warning(f"HybridEngine: Similar query detector returned an unexpected result format: {similar_result}. Proceeding without cache for this query.")
         
         # When using Prolog as primary, determine if this query should use Ollama
         if self.use_prolog_as_primary and self.use_ollama and self.ollama_for_complex_only:
@@ -133,15 +178,16 @@ class HybridEngine:
                 result = self._process_query_by_type(query_type, params, attempt_ollama_call=should_use_ollama_for_this_specific_query)
                 
                 # Cache this query-response pair if successful
-                if user_query and "response" in result and len(result["response"]) > 10 and result.get("source") != "cache": # Avoid re-caching cache hits
+                if user_query and "response" in result and len(result["response"]) > 10 and result.get("source") != "cache" and result.get("source") != "hybrid_engine_initializing":
                     self.similar_query_detector.add_query(user_query, result["response"])
                     
                 return result
             except Exception as e:
-                logging.error(f"Error processing query: {str(e)}")
+                logging.error(f"HybridEngine query error: {str(e)}", exc_info=True)
                 return {
-                    "error": f"Error processing query: {str(e)}",
-                    "response": "I encountered an error while processing your query. Please try again or rephrase your question."
+                    "error": f"HybridEngine Error (A1): {str(e)}",
+                    "response": f"DEBUG ERROR - I encountered a specific error (A1): {str(e)}. Please try again or rephrase your question.",
+                    "source": "hybrid_engine_error_A1"
                 }
         else:
             # Handle based on query type (original behavior - assumes Ollama should be tried if available and enabled globally)
@@ -153,15 +199,16 @@ class HybridEngine:
                 result = self._process_query_by_type(query_type, params, attempt_ollama_call=should_attempt_ollama)
                 
                 # Cache this query-response pair if successful
-                if user_query and "response" in result and len(result["response"]) > 10 and result.get("source") != "cache":
+                if user_query and "response" in result and len(result["response"]) > 10 and result.get("source") != "cache" and result.get("source") != "hybrid_engine_initializing":
                     self.similar_query_detector.add_query(user_query, result["response"])
                     
                 return result
             except Exception as e:
-                logging.error(f"Error processing query: {str(e)}")
+                logging.error(f"HybridEngine query error (non-Prolog-primary path): {str(e)}", exc_info=True)
                 return {
-                    "error": f"Error processing query: {str(e)}",
-                    "response": "I encountered an error while processing your query. Please try again or rephrase your question."
+                    "error": f"HybridEngine Error (B1): {str(e)}",
+                    "response": f"DEBUG ERROR - I encountered a specific error (B1): {str(e)}. Please try again or rephrase your question.",
+                    "source": "hybrid_engine_error_B1"
                 }
     
     def _should_use_ollama_for_query(self, query_type: str, params: Dict) -> bool:
@@ -237,7 +284,8 @@ class HybridEngine:
         """Process a query based on its type, honouring attempt_ollama_call flag."""
         if query_type == "pest_identification":
             return self._process_pest_identification(params, attempt_ollama_call=attempt_ollama_call)
-        elif query_type == "control_methods":
+        elif query_type == "control_methods" or query_type == "pest_management":
+            # Handle both 'control_methods' and 'pest_management' query types with the same method
             return self._process_control_methods(params, attempt_ollama_call=attempt_ollama_call)
         elif query_type == "crop_pests":
             return self._process_crop_pests(params, attempt_ollama_call=attempt_ollama_call)
@@ -306,9 +354,10 @@ class HybridEngine:
                 crop=crop_name
             )
             
-            llm_response = self.ollama_handler.generate_response(
-                prompt=prompt_content["user_prompt"], # Assuming system prompt is handled by handler or template
-                model=self.ollama_model
+            # Use specialized model for pest identification
+            llm_response = self.ollama_handler.generate_response_with_specialized_model(
+                prompt=prompt_content["user_prompt"],
+                query_type="pest_identification"
             )
             
             if llm_response and llm_response.strip():
@@ -391,9 +440,10 @@ class HybridEngine:
                 crop=crop_name
             )
             
-            llm_response = self.ollama_handler.generate_response(
+            # Use specialized model for pest management
+            llm_response = self.ollama_handler.generate_response_with_specialized_model(
                 prompt=prompt_content["user_prompt"],
-                model=self.ollama_model
+                query_type="pest_management"
             )
 
             if llm_response and llm_response.strip():
@@ -454,9 +504,10 @@ class HybridEngine:
                 crop=crop_name,
             )
             
-            llm_response = self.ollama_handler.generate_response(
+            # Use specialized model for pest management
+            llm_response = self.ollama_handler.generate_response_with_specialized_model(
                 prompt=prompt_content["user_prompt"],
-                model=self.ollama_model
+                query_type="pest_management"
             )
 
             if llm_response and llm_response.strip():
@@ -532,9 +583,10 @@ class HybridEngine:
                 purpose=params.get('purpose', '')
             )
             
-            llm_response = self.ollama_handler.generate_response(
+            # Use specialized model for pest management
+            llm_response = self.ollama_handler.generate_response_with_specialized_model(
                 prompt=prompt_content["user_prompt"],
-                model=self.ollama_model
+                query_type="pest_management"
             )
 
             if llm_response and llm_response.strip():
@@ -551,7 +603,7 @@ class HybridEngine:
     
     def _process_general_query(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
         """Process general queries, trying Prolog KB search first, then Ollama, with clarification logic."""
-        user_query = params.get("query", "").lower() # Work with lowercase
+        user_query = params.get("message", "").lower() # Work with lowercase
         prolog_info_parts = []
         prolog_data_found = False
 
@@ -632,9 +684,10 @@ class HybridEngine:
                 query=ollama_context
             )
             
-            llm_response = self.ollama_handler.generate_response(
+            # Use specialized model for pest management
+            llm_response = self.ollama_handler.generate_response_with_specialized_model(
                 prompt=prompt_content["user_prompt"],
-                model=self.ollama_model
+                query_type="pest_management"
             )
 
             if llm_response and llm_response.strip():
@@ -656,16 +709,49 @@ class HybridEngine:
         }
     
     def get_stats(self) -> Dict[str, Any]:
-        """Get performance statistics"""
+        """Get performance statistics and engine status"""
         uptime = time.time() - self.start_time
         cache_hit_rate = self.cache_hit_count / self.query_count if self.query_count > 0 else 0
+        
+        ollama_handler_available = False
+        ollama_handler_initialized_successfully = False
+        ollama_handler_initialization_pending = True # Assume pending until proven otherwise
+        ollama_handler_circuit_state = "N/A"
+        
+        if self.ollama_handler:
+            ollama_handler_available = self.ollama_handler.is_available
+            # Check if initialization thread has finished and if it was successful
+            if self.ollama_handler._initialization_complete.is_set():
+                ollama_handler_initialization_pending = False
+                ollama_handler_initialized_successfully = self.ollama_handler._initialization_success
+            else:
+                ollama_handler_initialization_pending = True # Still running
+                ollama_handler_initialized_successfully = False # Not yet successful
+            
+            # Get circuit breaker states if possible (assuming they have a get_state method)
+            if hasattr(self.ollama_handler, 'availability_circuit') and hasattr(self.ollama_handler.availability_circuit, 'get_state'):
+                ollama_handler_circuit_state = self.ollama_handler.availability_circuit.get_state()
+            # Could add other circuit states like generate_circuit, chat_circuit etc.
+
+        prolog_service_available = False
+        if self.prolog_service and hasattr(self.prolog_service, 'is_kb_loaded'): # Assuming a way to check prolog status
+            prolog_service_available = self.prolog_service.is_kb_loaded() # Example check
         
         return {
             "uptime_seconds": uptime,
             "query_count": self.query_count,
             "cache_hits": self.cache_hit_count,
             "cache_hit_rate": cache_hit_rate,
-            "ollama_available": self.use_ollama and (self.ollama_handler.is_available if self.ollama_handler else False),
+            "ollama_handler_stats": {
+                "configured": self.use_ollama,
+                "available": ollama_handler_available,
+                "initialization_successful": ollama_handler_initialized_successfully,
+                "initialization_pending": ollama_handler_initialization_pending,
+                "circuit_breaker_state": ollama_handler_circuit_state
+            },
+            "prolog_service_stats": {
+                "available": prolog_service_available
+            },
             "similar_queries_cached": len(self.similar_query_detector.queries) if hasattr(self.similar_query_detector, 'queries') else 0
         }
     
