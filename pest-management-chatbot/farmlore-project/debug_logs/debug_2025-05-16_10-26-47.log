@@ -1,0 +1,4 @@
+DEBUG MESSAGE: User's knowledge entries
+
+DATA:
+[{'id': 1, 'title': 'green manuring', 'verification_status': 'pending', 'verification_count': 0, 'date_added': '2025-05-16 10:26:46.954886+00:00'}]

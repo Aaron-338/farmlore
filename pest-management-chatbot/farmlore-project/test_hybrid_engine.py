@@ -41,7 +41,8 @@ def main():
         
         # Test query
         logger.info("Testing HybridEngine.query()")
-        query_result = engine.query("What are common pests in maize?")
+        query_text = "What are common pests in maize?"
+        query_result = engine.query(query_type="general_query", params={"query": query_text})
         result_type = type(query_result).__name__
         logger.info(f"Query result type: {result_type}")
         

@@ -1,5 +1,15 @@
-from api.inference_engine.ollama_handler import OllamaHandler
+import os
+import sys
 import logging
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = str(Path(__file__).parent.parent.parent.absolute())
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Now we can import using absolute paths
+from api.inference_engine.ollama_handler import OllamaHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

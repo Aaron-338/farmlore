@@ -1,0 +1,164 @@
+{
+  "timestamp": "2025-05-15T20:51:43.610080",
+  "docker_status": true,
+  "test_results": [
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_performance.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 0.493985652923584,
+      "output": "[PrologConnector] Attempting to set SWI_HOME_DIR to: C:/Program Files/swipl\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_hybrid_engine.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 0.5066921710968018,
+      "output": "[PrologConnector] Attempting to set SWI_HOME_DIR to: C:/Program Files/swipl\n[PrologConnector] Executing consult query: consult('C:/Users/mmmab/Downloads/farmlore/pest-management-chatbot/farmlore-project/prolog_integration/knowledgebase.pl')\nProlog query error: Caused by: 'pest(name:Name, _)'. Returned: 'error(existence_error(procedure, /(pest, 2)), context(/(pyrun, 2), _80))'.\nProlog query error: Caused by: 'practice(name:Name, _)'. Returned: 'error(existence_error(procedure, /(practice, 2)), context(/(pyrun, 2), _200))'.\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_ollama.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 3.054352283477783,
+      "output": "\n===== TESTING FARMLORE OLLAMA INTEGRATION =====\n\n\n--- Testing Direct Connection to Ollama ---\n\n\n===== OLLAMA INTEGRATION TEST COMPLETE =====\n\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_fallbacks.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 32.22627139091492,
+      "output": "Testing in forced fallback mode (Ollama unavailable)\n----------------------------------------------------------------------\nQUESTION QUERY: \"What are common garden pests in tomatoes?\"\nRESPONSE: \"I'm currently unable to provide specific pest information. Common approaches include identifying the pest through visual inspection, researching organic control methods, and considering both cultural practices and natural predators for sustainable management.\"\n----------------------------------------------------------------------\nADVICE QUERY: \"Please suggest some methods to control aphids.\"\nRESPONSE: \"I apologize, but I'm experiencing technical difficulties. Please try again later, or contact support if the problem persists.\"\n----------------------------------------------------------------------\nSTATEMENT QUERY: \"My plants have small holes in the leaves.\"\nRESPONSE: \"I'm currently unable to provide specific crop information. Key factors for successful cultivation include choosing varieties adapted to your local climate, ensuring proper spacing, regular watering, and monitoring for pests and diseases.\"\n----------------------------------------------------------------------\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_kb.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 0.15301942825317383,
+      "output": "Testing knowledge base loading...\n\nTrying to load knowledge base from: c:/Users/mmmab/OneDrive/Desktop/pest-management-chatbot/pest-management-chatbot/api/knowledge_base/pest_kb.pl\nError during test: Caused by: 'consult('c:\\Users\\mmmab\\OneDrive\\Desktop\\pest-management-chatbot\\pest-management-chatbot\\api\\knowledge_base\\pest_kb.pl')'. Returned: 'error(syntax_error(Illegal \\u or \\U sequence), string(b\"consult('c:\\\\Users\\\\mmmab\\\\OneDrive\\\\Desktop\\\\pest-management-chatbot\\\\pest-management-chatbot\\\\api\\\\knowledge_base\\\\pest_kb.pl') . \", 11))'.\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_prolog.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 0.5488083362579346,
+      "output": "[PrologConnector] Attempting to set SWI_HOME_DIR to: C:/Program Files/swipl\nTesting Prolog Integration...\nCurrent working directory: C:\\Users\\mmmab\\Downloads\\farmlore\nWarning: Could not find SWI-Prolog in standard locations\n\nLooking for knowledge base in:\n- c:\\Users\\mmmab\\OneDrive\\Desktop\\pest-management-chatbot\\pest-management-chatbot\\api\\knowledge_base\\pest_kb.pl\nError: Could not find knowledge base file\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_ollama.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 0.4720473289489746,
+      "output": "Testing Ollama connectivity...\n\nBasic response test:\nI'm currently unable to provide specific pest information. Common approaches include identifying the pest through visual inspection, researching organic control methods, and considering both cultural practices and natural predators for sustainable management.\n\nError during testing: 'OllamaHandler' object has no attribute 'classify_intent'\n",
+      "error": ""
+    },
+    {
+      "file": "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_integrated_system.py",
+      "success": true,
+      "returncode": 0,
+      "duration": 0.49532341957092285,
+      "output": "[PrologConnector] Attempting to set SWI_HOME_DIR to: C:/Program Files/swipl\nInitializing HybridEngine...\n[PrologConnector] Executing consult query: consult('C:/Users/mmmab/Downloads/farmlore/pest-management-chatbot/farmlore-project/prolog_integration/knowledgebase.pl')\n\n=== Test 1: Clear Query ===\nQuery: How do I control aphids on tomatoes?\nProlog query error: Caused by: 'pest(name:Name, _)'. Returned: 'error(existence_error(procedure, /(pest, 2)), context(/(pyrun, 2), _80))'.\nProlog query error: Caused by: 'practice(name:Name, _)'. Returned: 'error(existence_error(procedure, /(practice, 2)), context(/(pyrun, 2), _200))'.\nResponse: I'm sorry, I couldn't find specific information for your query. Could you try rephrasing or asking about a specific pest, crop, or farming practice?\nConfidence: N/A\n\n=== Test 2: Follow-up Query ===\nQuery: What's the best organic method?\nProlog query error: Caused by: 'pest(name:Name, _)'. Returned: 'error(existence_error(procedure, /(pest, 2)), context(/(pyrun, 2), _320))'.\nProlog query error: Caused by: 'practice(name:Name, _)'. Returned: 'error(existence_error(procedure, /(practice, 2)), context(/(pyrun, 2), _440))'.\nResponse: I'm sorry, I couldn't find specific information for your query. Could you try rephrasing or asking about a specific pest, crop, or farming practice?\nConfidence: N/A\n\n=== Test 3: Vague Query ===\nQuery: My plants look bad\nProlog query error: Caused by: 'pest(name:Name, _)'. Returned: 'error(existence_error(procedure, /(pest, 2)), context(/(pyrun, 2), _560))'.\nProlog query error: Caused by: 'practice(name:Name, _)'. Returned: 'error(existence_error(procedure, /(practice, 2)), context(/(pyrun, 2), _680))'.\nResponse: I'm sorry, I couldn't find specific information for your query. Could you try rephrasing or asking about a specific pest, crop, or farming practice?\nConfidence: N/A\n\nAll tests completed successfully!\n",
+      "error": ""
+    }
+  ],
+  "coverage_results": {
+    "Hybrid Engine": {
+      "files_analyzed": 1,
+      "total_lines": 836,
+      "code_lines": 636,
+      "comment_lines": 82,
+      "blank_lines": 118,
+      "functions": 15,
+      "classes": 1,
+      "estimated_coverage": 40,
+      "matching_test_files": [
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_hybrid_engine.py",
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_integrated_system.py"
+      ]
+    },
+    "Prolog Engine": {
+      "files_analyzed": 2,
+      "total_lines": 375,
+      "code_lines": 302,
+      "comment_lines": 25,
+      "blank_lines": 48,
+      "functions": 19,
+      "classes": 3,
+      "estimated_coverage": 60,
+      "matching_test_files": [
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_performance.py",
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_ollama.py",
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_prolog.py"
+      ]
+    },
+    "Ollama Handler": {
+      "files_analyzed": 1,
+      "total_lines": 1303,
+      "code_lines": 897,
+      "comment_lines": 168,
+      "blank_lines": 238,
+      "functions": 38,
+      "classes": 2,
+      "estimated_coverage": 80,
+      "matching_test_files": [
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_hybrid_engine.py",
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_ollama.py",
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_fallbacks.py",
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\api\\inference_engine\\test_ollama.py"
+      ]
+    },
+    "Data Structures": {
+      "files_analyzed": 1,
+      "total_lines": 375,
+      "code_lines": 292,
+      "comment_lines": 13,
+      "blank_lines": 70,
+      "functions": 34,
+      "classes": 9,
+      "estimated_coverage": 20,
+      "matching_test_files": [
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_performance.py"
+      ]
+    },
+    "API Layer": {
+      "files_analyzed": 3,
+      "total_lines": 578,
+      "code_lines": 299,
+      "comment_lines": 26,
+      "blank_lines": 253,
+      "functions": 25,
+      "classes": 11,
+      "estimated_coverage": 20,
+      "matching_test_files": [
+        "C:\\Users\\mmmab\\Downloads\\farmlore\\pest-management-chatbot\\farmlore-project\\test_ollama.py"
+      ]
+    }
+  },
+  "performance_results": {
+    "data_structure_performance": {
+      "entity_trie": 0.0009968280792236328,
+      "lru_cache": 0.0006783008575439453,
+      "bloom_filter": 0.0005404949188232422
+    },
+    "cpu_utilization": 15.4,
+    "memory_utilization": {
+      "total": 7821766656,
+      "available": 722452480,
+      "used": 7099314176,
+      "percent": 90.8
+    }
+  },
+  "resilience_results": {
+    "fallback_mechanisms": {
+      "fallback_handler_implemented": true,
+      "alternative_response_mechanism": true,
+      "analysis": "The system has code to handle service unavailability through fallback mechanisms"
+    }
+  }
+}

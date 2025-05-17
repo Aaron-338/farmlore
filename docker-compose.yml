@@ -93,7 +93,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles:/modelfiles
+      - ./pest-management-chatbot/farmlore-project/api/inference_engine/modelfiles:/app/modelfiles
     environment:
       - OLLAMA_HOST=0.0.0.0
     restart: always

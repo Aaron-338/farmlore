@@ -1,0 +1,478 @@
+2025-05-15 20:21:25,977 - INFO - Starting FarmLore test runner
+2025-05-15 20:21:25,978 - INFO - Checking Docker container status...
+2025-05-15 20:21:26,141 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:21:26,141 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:21:26,142 - INFO - Installing test dependencies...
+2025-05-15 20:21:36,942 - INFO - Dependencies installed successfully.
+2025-05-15 20:21:36,942 - INFO - Running test file: test_performance.py
+2025-05-15 20:21:36,942 - ERROR - Test file not found: C:\Users\mmmab\Downloads\farmlore\test_performance.py
+2025-05-15 20:21:36,943 - INFO - Running test file: test_hybrid_engine.py
+2025-05-15 20:21:37,033 - INFO - Running test file: test_ollama.py
+2025-05-15 20:21:42,715 - INFO - Running test file: test_fallbacks.py
+2025-05-15 20:21:42,783 - INFO - Running test file: api/inference_engine/test_kb.py
+2025-05-15 20:21:42,784 - ERROR - Test file not found: C:\Users\mmmab\Downloads\farmlore\api\inference_engine\test_kb.py
+2025-05-15 20:21:42,784 - INFO - Running test file: api/inference_engine/test_prolog.py
+2025-05-15 20:21:42,784 - ERROR - Test file not found: C:\Users\mmmab\Downloads\farmlore\api\inference_engine\test_prolog.py
+2025-05-15 20:21:42,785 - INFO - Running test file: api/inference_engine/test_ollama.py
+2025-05-15 20:21:42,785 - ERROR - Test file not found: C:\Users\mmmab\Downloads\farmlore\api\inference_engine\test_ollama.py
+2025-05-15 20:21:42,785 - INFO - Running test file: api/inference_engine/test_integrated_system.py
+2025-05-15 20:21:42,785 - ERROR - Test file not found: C:\Users\mmmab\Downloads\farmlore\api\inference_engine\test_integrated_system.py
+2025-05-15 20:21:42,785 - INFO - Running coverage analysis...
+2025-05-15 20:21:42,785 - INFO - Analyzing coverage for component: Hybrid Engine
+2025-05-15 20:21:47,441 - ERROR - Error analyzing coverage for Hybrid Engine: Command '['coverage', 'json', '-o', 'coverage.json']' returned non-zero exit status 1.
+2025-05-15 20:21:47,442 - INFO - Analyzing coverage for component: Prolog Engine
+2025-05-15 20:21:49,596 - ERROR - Error analyzing coverage for Prolog Engine: Command '['coverage', 'json', '-o', 'coverage.json']' returned non-zero exit status 1.
+2025-05-15 20:21:49,596 - INFO - Analyzing coverage for component: Ollama Handler
+2025-05-15 20:21:51,466 - ERROR - Error analyzing coverage for Ollama Handler: Command '['coverage', 'json', '-o', 'coverage.json']' returned non-zero exit status 1.
+2025-05-15 20:21:51,466 - INFO - Analyzing coverage for component: Data Structures
+2025-05-15 20:21:53,168 - ERROR - Error analyzing coverage for Data Structures: Command '['coverage', 'json', '-o', 'coverage.json']' returned non-zero exit status 1.
+2025-05-15 20:21:53,169 - INFO - Analyzing coverage for component: API Layer
+2025-05-15 20:21:55,015 - ERROR - Error analyzing coverage for API Layer: Command '['coverage', 'json', '-o', 'coverage.json']' returned non-zero exit status 1.
+2025-05-15 20:21:55,016 - INFO - Running performance tests...
+2025-05-15 20:21:55,831 - WARNING - Query failed: 'What are common pests in tomato plants?' - Status code: 404
+2025-05-15 20:21:55,912 - WARNING - Query failed: 'How do I control aphids organically?' - Status code: 404
+2025-05-15 20:21:55,946 - WARNING - Query failed: 'My cucumber leaves have yellow spots, what could it be?' - Status code: 404
+2025-05-15 20:21:56,010 - WARNING - Query failed: 'What's the best time to plant maize in a tropical climate?' - Status code: 404
+2025-05-15 20:21:57,550 - INFO - Throughput: 0.00 requests/second with 10 concurrent users
+2025-05-15 20:21:58,573 - INFO - CPU utilization: 9.1%
+2025-05-15 20:21:58,574 - INFO - Memory utilization: 92.1% (6872.1 MB)
+2025-05-15 20:21:58,587 - INFO - Running resilience tests...
+2025-05-15 20:21:58,587 - INFO - Testing resilience to Ollama service unavailability
+2025-05-15 20:24:53,375 - INFO - Starting FarmLore test runner
+2025-05-15 20:24:53,376 - INFO - Checking Docker container status...
+2025-05-15 20:24:53,526 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:24:53,526 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:24:53,526 - INFO - Installing test dependencies...
+2025-05-15 20:24:56,749 - INFO - Dependencies installed successfully.
+2025-05-15 20:24:56,749 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:25:00,463 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:25:01,268 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:25:04,232 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:25:36,423 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:25:36,603 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:25:36,706 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:25:36,780 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:25:36,949 - INFO - Running static code analysis...
+2025-05-15 20:25:36,949 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:25:36,950 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:25:36,970 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:25:36,971 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:25:36,972 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:25:36,972 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:25:36,974 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:25:36,974 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:25:36,976 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:25:36,978 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:25:36,979 - INFO - Analyzing component: Data Structures
+2025-05-15 20:25:36,979 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:25:36,981 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:25:36,981 - INFO - Analyzing component: API Layer
+2025-05-15 20:25:36,982 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:25:36,982 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:25:36,982 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:25:36,984 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:25:36,984 - INFO - Running performance tests...
+2025-05-15 20:25:37,012 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:25:37,066 - INFO - Running EntityTrie performance test
+2025-05-15 20:25:37,071 - INFO - Testing EntityTrie...
+2025-05-15 20:25:37,072 - INFO - EntityTrie search completed in 0.000051 seconds
+2025-05-15 20:25:37,073 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:25:37,075 - INFO - EntityTrie test completed in 0.0032s
+2025-05-15 20:25:37,079 - INFO - Running LRU Cache performance test
+2025-05-15 20:25:37,089 - INFO - Testing LRUCache...
+2025-05-15 20:25:37,098 - INFO - LRUCache test passed
+2025-05-15 20:25:37,099 - INFO - LRU Cache test completed in 0.0099s
+2025-05-15 20:25:37,102 - INFO - Running Bloom Filter performance test
+2025-05-15 20:25:37,103 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:25:37,113 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:25:37,119 - INFO - Bloom Filter test completed in 0.0154s
+2025-05-15 20:25:38,141 - INFO - CPU utilization: 28.0%
+2025-05-15 20:25:38,141 - INFO - Memory utilization: 89.5% (6679.8 MB)
+2025-05-15 20:25:38,141 - INFO - Running resilience tests...
+2025-05-15 20:25:38,141 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:25:38,142 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:25:38,142 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:25:38,144 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_202453.json
+2025-05-15 20:29:55,624 - INFO - Starting FarmLore test runner
+2025-05-15 20:29:55,624 - INFO - Checking Docker container status...
+2025-05-15 20:29:55,795 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:29:55,796 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:29:55,796 - INFO - Installing test dependencies...
+2025-05-15 20:29:58,222 - INFO - Dependencies installed successfully.
+2025-05-15 20:29:58,222 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:29:58,805 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:29:59,319 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:30:02,310 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:30:37,240 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:30:37,403 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:30:37,918 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:30:38,508 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:30:39,098 - INFO - Running static code analysis...
+2025-05-15 20:30:39,099 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:30:39,100 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:30:39,103 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:30:39,103 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:30:39,104 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:30:39,105 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:30:39,108 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:30:39,108 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:30:39,110 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:30:39,113 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:30:39,113 - INFO - Analyzing component: Data Structures
+2025-05-15 20:30:39,114 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:30:39,117 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:30:39,117 - INFO - Analyzing component: API Layer
+2025-05-15 20:30:39,118 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:30:39,119 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:30:39,120 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:30:39,122 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:30:39,123 - INFO - Running performance tests...
+2025-05-15 20:30:39,147 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:30:39,190 - INFO - Running EntityTrie performance test
+2025-05-15 20:30:39,190 - INFO - Testing EntityTrie...
+2025-05-15 20:30:39,191 - INFO - EntityTrie search completed in 0.000023 seconds
+2025-05-15 20:30:39,191 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:30:39,191 - INFO - EntityTrie test completed in 0.0012s
+2025-05-15 20:30:39,192 - INFO - Running LRU Cache performance test
+2025-05-15 20:30:39,192 - INFO - Testing LRUCache...
+2025-05-15 20:30:39,192 - INFO - LRUCache test passed
+2025-05-15 20:30:39,193 - INFO - LRU Cache test completed in 0.0007s
+2025-05-15 20:30:39,193 - INFO - Running Bloom Filter performance test
+2025-05-15 20:30:39,193 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:30:39,193 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:30:39,194 - INFO - Bloom Filter test completed in 0.0005s
+2025-05-15 20:30:40,202 - INFO - CPU utilization: 27.8%
+2025-05-15 20:30:40,202 - INFO - Memory utilization: 88.1% (6570.9 MB)
+2025-05-15 20:30:40,202 - INFO - Running resilience tests...
+2025-05-15 20:30:40,202 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:30:40,203 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:30:40,203 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:30:40,205 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_202955.json
+2025-05-15 20:34:32,739 - INFO - Starting FarmLore test runner
+2025-05-15 20:34:32,739 - INFO - Checking Docker container status...
+2025-05-15 20:34:32,982 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:34:32,982 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:34:32,983 - INFO - Installing test dependencies...
+2025-05-15 20:34:35,474 - INFO - Dependencies installed successfully.
+2025-05-15 20:34:35,475 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:34:35,963 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:34:36,511 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:34:39,452 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:35:12,698 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:35:12,834 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:35:13,371 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:35:13,830 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:35:14,417 - INFO - Running static code analysis...
+2025-05-15 20:35:14,417 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:35:14,418 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:35:14,420 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:35:14,421 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:35:14,422 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:35:14,422 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:35:14,426 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:35:14,427 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:35:14,429 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:35:14,432 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:35:14,432 - INFO - Analyzing component: Data Structures
+2025-05-15 20:35:14,434 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:35:14,438 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:35:14,438 - INFO - Analyzing component: API Layer
+2025-05-15 20:35:14,440 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:35:14,441 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:35:14,442 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:35:14,446 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:35:14,446 - INFO - Running performance tests...
+2025-05-15 20:35:14,477 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:35:14,525 - INFO - Running EntityTrie performance test
+2025-05-15 20:35:14,526 - INFO - Testing EntityTrie...
+2025-05-15 20:35:14,526 - INFO - EntityTrie search completed in 0.000018 seconds
+2025-05-15 20:35:14,526 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:35:14,527 - INFO - EntityTrie test completed in 0.0010s
+2025-05-15 20:35:14,527 - INFO - Running LRU Cache performance test
+2025-05-15 20:35:14,527 - INFO - Testing LRUCache...
+2025-05-15 20:35:14,528 - INFO - LRUCache test passed
+2025-05-15 20:35:14,528 - INFO - LRU Cache test completed in 0.0007s
+2025-05-15 20:35:14,528 - INFO - Running Bloom Filter performance test
+2025-05-15 20:35:14,529 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:35:14,529 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:35:14,529 - INFO - Bloom Filter test completed in 0.0006s
+2025-05-15 20:35:15,538 - INFO - CPU utilization: 20.1%
+2025-05-15 20:35:15,538 - INFO - Memory utilization: 85.8% (6402.8 MB)
+2025-05-15 20:35:15,538 - INFO - Running resilience tests...
+2025-05-15 20:35:15,539 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:35:15,539 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:35:15,539 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:35:15,541 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_203432.json
+2025-05-15 20:43:03,995 - INFO - Starting FarmLore test runner
+2025-05-15 20:43:03,996 - INFO - Checking Docker container status...
+2025-05-15 20:43:04,133 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:43:04,152 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:43:04,152 - INFO - Installing test dependencies...
+2025-05-15 20:43:06,630 - INFO - Dependencies installed successfully.
+2025-05-15 20:43:06,630 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:43:07,100 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:43:07,802 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:43:10,759 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:43:43,256 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:43:43,400 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:43:43,898 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:43:44,428 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:43:45,039 - INFO - Running static code analysis...
+2025-05-15 20:43:45,039 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:43:45,041 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:43:45,043 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:43:45,043 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:43:45,044 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:43:45,045 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:43:45,047 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:43:45,047 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:43:45,049 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:43:45,053 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:43:45,053 - INFO - Analyzing component: Data Structures
+2025-05-15 20:43:45,054 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:43:45,057 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:43:45,057 - INFO - Analyzing component: API Layer
+2025-05-15 20:43:45,058 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:43:45,059 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:43:45,060 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:43:45,062 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:43:45,063 - INFO - Running performance tests...
+2025-05-15 20:43:45,100 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:43:45,147 - INFO - Running EntityTrie performance test
+2025-05-15 20:43:45,148 - INFO - Testing EntityTrie...
+2025-05-15 20:43:45,148 - INFO - EntityTrie search completed in 0.000022 seconds
+2025-05-15 20:43:45,148 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:43:45,149 - INFO - EntityTrie test completed in 0.0012s
+2025-05-15 20:43:45,149 - INFO - Running LRU Cache performance test
+2025-05-15 20:43:45,150 - INFO - Testing LRUCache...
+2025-05-15 20:43:45,150 - INFO - LRUCache test passed
+2025-05-15 20:43:45,151 - INFO - LRU Cache test completed in 0.0011s
+2025-05-15 20:43:45,151 - INFO - Running Bloom Filter performance test
+2025-05-15 20:43:45,152 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:43:45,152 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:43:45,152 - INFO - Bloom Filter test completed in 0.0008s
+2025-05-15 20:43:46,161 - INFO - CPU utilization: 19.3%
+2025-05-15 20:43:46,161 - INFO - Memory utilization: 90.3% (6735.6 MB)
+2025-05-15 20:43:46,162 - INFO - Running resilience tests...
+2025-05-15 20:43:46,162 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:43:46,162 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:43:46,162 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:43:46,164 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_204303.json
+2025-05-15 20:44:12,547 - INFO - Starting FarmLore test runner
+2025-05-15 20:44:12,548 - INFO - Checking Docker container status...
+2025-05-15 20:44:12,713 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:44:12,714 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:44:12,714 - INFO - Installing test dependencies...
+2025-05-15 20:44:15,094 - INFO - Dependencies installed successfully.
+2025-05-15 20:44:15,095 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:44:15,595 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:44:16,202 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:44:19,141 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:44:52,605 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:44:52,741 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:44:53,189 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:44:53,736 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:44:54,240 - INFO - Running static code analysis...
+2025-05-15 20:44:54,240 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:44:54,242 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:44:54,244 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:44:54,245 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:44:54,245 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:44:54,246 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:44:54,247 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:44:54,248 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:44:54,249 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:44:54,250 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:44:54,251 - INFO - Analyzing component: Data Structures
+2025-05-15 20:44:54,251 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:44:54,253 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:44:54,253 - INFO - Analyzing component: API Layer
+2025-05-15 20:44:54,254 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:44:54,255 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:44:54,256 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:44:54,259 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:44:54,259 - INFO - Running performance tests...
+2025-05-15 20:44:54,280 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:44:54,317 - INFO - Running EntityTrie performance test
+2025-05-15 20:44:54,317 - INFO - Testing EntityTrie...
+2025-05-15 20:44:54,318 - INFO - EntityTrie search completed in 0.000016 seconds
+2025-05-15 20:44:54,318 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:44:54,318 - INFO - EntityTrie test completed in 0.0008s
+2025-05-15 20:44:54,318 - INFO - Running LRU Cache performance test
+2025-05-15 20:44:54,318 - INFO - Testing LRUCache...
+2025-05-15 20:44:54,318 - INFO - LRUCache test passed
+2025-05-15 20:44:54,319 - INFO - LRU Cache test completed in 0.0003s
+2025-05-15 20:44:54,319 - INFO - Running Bloom Filter performance test
+2025-05-15 20:44:54,319 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:44:54,319 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:44:54,319 - INFO - Bloom Filter test completed in 0.0004s
+2025-05-15 20:44:55,327 - INFO - CPU utilization: 26.6%
+2025-05-15 20:44:55,328 - INFO - Memory utilization: 90.0% (6709.9 MB)
+2025-05-15 20:44:55,328 - INFO - Running resilience tests...
+2025-05-15 20:44:55,328 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:44:55,329 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:44:55,329 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:44:55,331 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_204412.json
+2025-05-15 20:49:25,874 - INFO - Starting FarmLore test runner
+2025-05-15 20:49:25,874 - INFO - Checking Docker container status...
+2025-05-15 20:49:26,165 - WARNING - Missing containers: farmlore-web, farmlore-db, farmlore-ollama, farmlore-nginx
+2025-05-15 20:49:26,165 - WARNING - Some Docker containers are not running. Tests may fail.
+2025-05-15 20:49:26,165 - INFO - Installing test dependencies...
+2025-05-15 20:49:28,771 - INFO - Dependencies installed successfully.
+2025-05-15 20:49:28,772 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:49:29,327 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:49:29,978 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:49:32,996 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:50:05,884 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:50:06,042 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:50:06,526 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:50:06,991 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:50:07,606 - INFO - Running static code analysis...
+2025-05-15 20:50:07,606 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:50:07,608 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:50:07,609 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:50:07,610 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:50:07,611 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:50:07,611 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:50:07,613 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:50:07,613 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:50:07,615 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:50:07,616 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:50:07,617 - INFO - Analyzing component: Data Structures
+2025-05-15 20:50:07,617 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:50:07,619 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:50:07,620 - INFO - Analyzing component: API Layer
+2025-05-15 20:50:07,621 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:50:07,622 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:50:07,623 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:50:07,625 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:50:07,625 - INFO - Running performance tests...
+2025-05-15 20:50:07,649 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:50:07,685 - INFO - Running EntityTrie performance test
+2025-05-15 20:50:07,685 - INFO - Testing EntityTrie...
+2025-05-15 20:50:07,686 - INFO - EntityTrie search completed in 0.000017 seconds
+2025-05-15 20:50:07,686 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:50:07,687 - INFO - EntityTrie test completed in 0.0015s
+2025-05-15 20:50:07,687 - INFO - Running LRU Cache performance test
+2025-05-15 20:50:07,688 - INFO - Testing LRUCache...
+2025-05-15 20:50:07,688 - INFO - LRUCache test passed
+2025-05-15 20:50:07,688 - INFO - LRU Cache test completed in 0.0007s
+2025-05-15 20:50:07,689 - INFO - Running Bloom Filter performance test
+2025-05-15 20:50:07,689 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:50:07,689 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:50:07,690 - INFO - Bloom Filter test completed in 0.0010s
+2025-05-15 20:50:08,698 - INFO - CPU utilization: 15.9%
+2025-05-15 20:50:08,698 - INFO - Memory utilization: 89.0% (6641.3 MB)
+2025-05-15 20:50:08,699 - INFO - Running resilience tests...
+2025-05-15 20:50:08,699 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:50:08,699 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:50:08,701 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:50:08,703 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_204925.json
+2025-05-15 20:51:41,132 - INFO - Starting FarmLore test runner
+2025-05-15 20:51:41,133 - INFO - Checking Docker container status...
+2025-05-15 20:51:41,298 - INFO - All required Docker containers are running.
+2025-05-15 20:51:41,298 - INFO - Installing test dependencies...
+2025-05-15 20:51:43,609 - INFO - Dependencies installed successfully.
+2025-05-15 20:51:43,610 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:51:44,104 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:51:44,611 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:51:47,666 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:52:19,893 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:52:20,047 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:52:20,596 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:52:21,069 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:52:21,565 - INFO - Running static code analysis...
+2025-05-15 20:52:21,566 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:52:21,567 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:52:21,569 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:52:21,569 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:52:21,570 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:52:21,571 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:52:21,574 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:52:21,575 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:52:21,576 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:52:21,578 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:52:21,579 - INFO - Analyzing component: Data Structures
+2025-05-15 20:52:21,580 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:52:21,583 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:52:21,583 - INFO - Analyzing component: API Layer
+2025-05-15 20:52:21,584 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:52:21,585 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:52:21,586 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:52:21,589 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:52:21,590 - INFO - Running performance tests...
+2025-05-15 20:52:21,616 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:52:21,661 - INFO - Running EntityTrie performance test
+2025-05-15 20:52:21,661 - INFO - Testing EntityTrie...
+2025-05-15 20:52:21,662 - INFO - EntityTrie search completed in 0.000017 seconds
+2025-05-15 20:52:21,662 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:52:21,662 - INFO - EntityTrie test completed in 0.0010s
+2025-05-15 20:52:21,663 - INFO - Running LRU Cache performance test
+2025-05-15 20:52:21,663 - INFO - Testing LRUCache...
+2025-05-15 20:52:21,663 - INFO - LRUCache test passed
+2025-05-15 20:52:21,664 - INFO - LRU Cache test completed in 0.0007s
+2025-05-15 20:52:21,664 - INFO - Running Bloom Filter performance test
+2025-05-15 20:52:21,664 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:52:21,665 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:52:21,665 - INFO - Bloom Filter test completed in 0.0005s
+2025-05-15 20:52:22,674 - INFO - CPU utilization: 15.4%
+2025-05-15 20:52:22,674 - INFO - Memory utilization: 90.8% (6770.4 MB)
+2025-05-15 20:52:22,674 - INFO - Running resilience tests...
+2025-05-15 20:52:22,674 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:52:22,675 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:52:22,675 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:52:22,677 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_205141.json
+2025-05-15 20:53:25,509 - INFO - Starting FarmLore test runner
+2025-05-15 20:53:25,509 - INFO - Checking Docker container status...
+2025-05-15 20:53:25,646 - INFO - All required Docker containers are running.
+2025-05-15 20:53:25,646 - INFO - Installing test dependencies...
+2025-05-15 20:53:28,211 - INFO - Dependencies installed successfully.
+2025-05-15 20:53:28,212 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:53:28,744 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_hybrid_engine.py
+2025-05-15 20:53:29,333 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_ollama.py
+2025-05-15 20:53:32,394 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:54:06,211 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_kb.py
+2025-05-15 20:54:06,401 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_prolog.py
+2025-05-15 20:54:06,976 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_ollama.py
+2025-05-15 20:54:07,676 - INFO - Running test file: C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\test_integrated_system.py
+2025-05-15 20:54:08,371 - INFO - Running static code analysis...
+2025-05-15 20:54:08,371 - INFO - Analyzing component: Hybrid Engine
+2025-05-15 20:54:08,373 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\hybrid_engine.py: 836 lines, 15 functions, 1 classes
+2025-05-15 20:54:08,375 - INFO - Estimated coverage for Hybrid Engine: 40% based on 2 matching test files
+2025-05-15 20:54:08,376 - INFO - Analyzing component: Prolog Engine
+2025-05-15 20:54:08,377 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\prolog_engine.py: 199 lines, 11 functions, 2 classes
+2025-05-15 20:54:08,379 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\prolog_integration\service.py: 176 lines, 8 functions, 1 classes
+2025-05-15 20:54:08,383 - INFO - Estimated coverage for Prolog Engine: 60% based on 3 matching test files
+2025-05-15 20:54:08,384 - INFO - Analyzing component: Ollama Handler
+2025-05-15 20:54:08,387 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\inference_engine\ollama_handler.py: 1303 lines, 38 functions, 2 classes
+2025-05-15 20:54:08,389 - INFO - Estimated coverage for Ollama Handler: 80% based on 4 matching test files
+2025-05-15 20:54:08,390 - INFO - Analyzing component: Data Structures
+2025-05-15 20:54:08,391 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\core\data_structures.py: 375 lines, 34 functions, 9 classes
+2025-05-15 20:54:08,393 - INFO - Estimated coverage for Data Structures: 20% based on 1 matching test files
+2025-05-15 20:54:08,394 - INFO - Analyzing component: API Layer
+2025-05-15 20:54:08,395 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\views.py: 450 lines, 20 functions, 5 classes
+2025-05-15 20:54:08,397 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\urls.py: 50 lines, 0 functions, 0 classes
+2025-05-15 20:54:08,398 - INFO - Analyzed C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\api\models.py: 78 lines, 5 functions, 6 classes
+2025-05-15 20:54:08,404 - INFO - Estimated coverage for API Layer: 20% based on 1 matching test files
+2025-05-15 20:54:08,405 - INFO - Running performance tests...
+2025-05-15 20:54:08,453 - INFO - Running data structure performance tests from C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_performance.py
+2025-05-15 20:54:08,505 - INFO - Running EntityTrie performance test
+2025-05-15 20:54:08,505 - INFO - Testing EntityTrie...
+2025-05-15 20:54:08,506 - INFO - EntityTrie search completed in 0.000026 seconds
+2025-05-15 20:54:08,506 - INFO - Found entities: [('aphid', 'pest', 7, 13), ('tomato', 'crop', 20, 28)]
+2025-05-15 20:54:08,506 - INFO - EntityTrie test completed in 0.0013s
+2025-05-15 20:54:08,507 - INFO - Running LRU Cache performance test
+2025-05-15 20:54:08,507 - INFO - Testing LRUCache...
+2025-05-15 20:54:08,507 - INFO - LRUCache test passed
+2025-05-15 20:54:08,507 - INFO - LRU Cache test completed in 0.0005s
+2025-05-15 20:54:08,508 - INFO - Running Bloom Filter performance test
+2025-05-15 20:54:08,508 - INFO - Testing SimpleBloomFilter...
+2025-05-15 20:54:08,508 - INFO - Bloom filter false positives: 0/3
+2025-05-15 20:54:08,509 - INFO - Bloom Filter test completed in 0.0007s
+2025-05-15 20:54:09,519 - INFO - CPU utilization: 18.4%
+2025-05-15 20:54:09,519 - INFO - Memory utilization: 85.0% (6337.9 MB)
+2025-05-15 20:54:09,519 - INFO - Running resilience tests...
+2025-05-15 20:54:09,520 - INFO - Skipping resilience tests that require Docker containers
+2025-05-15 20:54:09,520 - INFO - Analyzing fallback mechanisms in C:\Users\mmmab\Downloads\farmlore\pest-management-chatbot\farmlore-project\test_fallbacks.py
+2025-05-15 20:54:09,520 - INFO - Fallback mechanism analysis: Implemented
+2025-05-15 20:54:09,522 - INFO - Test results saved to C:\Users\mmmab\Downloads\farmlore\test_results\test_results_20250515_205325.json

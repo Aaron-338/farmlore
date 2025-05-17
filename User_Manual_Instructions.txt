@@ -1,0 +1,48 @@
+# User Manual: The Farmlore System Operation
+
+## 1. Introduction
+This user manual, a section of the main report, details the operation of the Farmlore System, which provides agricultural and pest management information.
+
+## 2. Initial System Access
+Access the Farmlore System by opening its designated Uniform Resource Locator (URL) in a web browser. The main system dashboard will then be presented.
+`[VISUAL: Main system interface: welcome screen and navigation elements.]`
+
+## 3. Utilising the FarmLore Assistant Chat Facility
+The "Chat with FarmLore Assistant" is a primary feature for posing queries and receiving advice.
+
+### 3.1. Accessing and Initiating Chat
+Select the "Chat" hyperlink, typically in the main navigation bar, to open the chat screen. An initial welcome message from the assistant will be displayed: "Hello! I'm your FarmLore assistant for agricultural knowledge and soil fertility. How can I help you today?"
+`[VISUAL: Chat interface: assistant's welcome message, possibly with "Rule-Based" tag and 👍/👎 icons.]`
+
+Users can submit queries either by direct text input or by selecting an example question.
+*   **Direct Input:** Type a query into the input field (placeholder: "Type your message...") at the lower boundary of the chat interface. Click the green "Send" button (paper aeroplane icon) for submission.
+    `[VISUAL: Text input field with "Type your message..." placeholder and green "Send" button.]`
+*   **Example Questions:** A section titled "Example Questions" may offer buttons for common queries (e.g., "What pests affect tomato plants?"). Selecting a button auto-populates and submits the query.
+    `[VISUAL: "Example Questions" section with pre-set query buttons.]`
+
+### 3.2. Observing and Interpreting Dialogue
+User queries appear on the right of the chat history (typically in green); assistant responses appear on the left (typically in white).
+`[VISUAL: User query (right, green); assistant response (left, white).]`
+A brief processing animation (e.g., three dots) may display while the assistant formulates a response.
+`[VISUAL: Processing animation (e.g., three dots).]`
+
+Assistant responses may include:
+*   **Source Annotations:** Brief labels (e.g., "Rule-Based," "LLM") indicating the information's origin.
+    `[VISUAL: Source tag (e.g., "Rule-Based") near assistant message.]`
+*   **Feedback Mechanism:** "👍" (Helpful) and "👎" (Not helpful) icons. User feedback is encouraged to refine assistant performance.
+    `[VISUAL: 👍/👎 feedback icons next to assistant's response.]`
+
+For clarifications or follow-up questions, type a new query into the input field. The assistant may also request clarification from the user.
+
+## 4. Accessing Other System Functionalities
+The Farmlore System may offer other modules (e.g., "Crop Management," "Soil Health"). Explore these via the main navigation panel.
+`[VISUAL: Main navigation: links to other system areas (e.g., "Crop Management").]`
+
+## 5. Troubleshooting Common Issues
+*   **Unresponsiveness:** Refresh the web page.
+*   **Connectivity:** Ensure a stable internet connection.
+*   **Further Assistance:** Consult "Help," "Support," or "About" sections for more guidance or contact details.
+    `[VISUAL: "Help"/"Support" link/icon (e.g., question mark).]`
+
+---
+This manual aims to facilitate effective Farmlore System utilisation. 

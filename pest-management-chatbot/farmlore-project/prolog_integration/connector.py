@@ -1,5 +1,18 @@
-from pyswip import Prolog
 import os
+# Try to guide pyswip if SWI_HOME_DIR is not set, using the path from the warning.
+# This must be done BEFORE 'from pyswip import Prolog'
+if 'SWI_HOME_DIR' not in os.environ:
+    # Path from the warning: "c:/program files/swipl"
+    potential_swi_home = 'C:/Program Files/swipl' # Use a consistent format
+    if os.path.isdir(potential_swi_home) and os.path.isdir(os.path.join(potential_swi_home, 'bin')):
+        print(f"[PrologConnector] Attempting to set SWI_HOME_DIR to: {potential_swi_home}")
+        os.environ['SWI_HOME_DIR'] = potential_swi_home
+    else:
+        print(f"[PrologConnector] SWI_HOME_DIR not set and default '{potential_swi_home}' not found or invalid.")
+
+# Now import Prolog
+from pyswip import Prolog
+from pathlib import Path
 
 class PrologConnector:
     _instance = None
@@ -9,8 +22,17 @@ class PrologConnector:
             cls._instance = super(PrologConnector, cls).__new__(cls)
             cls._instance.prolog = Prolog()
             # Load the knowledge base
-            kb_path = os.path.join(os.path.dirname(__file__), 'knowledgebase.pl')
-            cls._instance.prolog.consult(kb_path)
+            kb_path_obj = Path(os.path.dirname(__file__)) / 'knowledgebase.pl'
+            prolog_path_atom = kb_path_obj.as_posix() # e.g., 'C:/Users/user/file.pl'
+            
+            query_string = f"consult('{prolog_path_atom}')"
+            print(f"[PrologConnector] Executing consult query: {query_string}")
+            try:
+                list(cls._instance.prolog.query(query_string))
+            except Exception as e:
+                print(f"[PrologConnector] Error during explicit consult query: {e}")
+                # Optionally, re-raise or handle as appropriate
+                raise
         return cls._instance
     
     def query(self, query_string):

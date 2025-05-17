@@ -159,21 +159,6 @@
         color: #997404;
     }
     
-    /* Debug panel for development purposes */
-    .debug-panel {
-        margin-top: 20px;
-        padding: 10px;
-        background-color: #f0f0f0;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-family: monospace;
-        font-size: 12px;
-        display: none;
-    }
-    
-    .show-debug {
-        display: block;
-    }
 </style>
 {% endblock %}
 
@@ -284,11 +269,6 @@
     </div>
 </div>
 
-<!-- Debug panel (hidden in production) -->
-<div id="debugPanel" class="debug-panel">
-    <h5>Debug Information</h5>
-    <pre id="debugLog"></pre>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -371,11 +351,10 @@
                         stats.ollamaAvailable = data.stats.ollama_available || false;
                         stats.ollamaInitialized = true; // If we got a response, we're initialized
                         updateStatsDisplay();
-                        debugLog('Updated engine stats:', data.stats);
                     }
                 })
                 .catch(error => {
-                    debugLog('Error fetching engine stats:', error);
+                    console.error('Error fetching engine stats:', error);
                 });
         }
         
@@ -385,38 +364,6 @@
         // Random ID generator for messages
         function generateMessageId() {
             return 'msg_' + Math.random().toString(36).substr(2, 9);
-        }
-        
-        // Debug logging function
-        const DEBUG = true;
-        function debugLog(message) {
-            if (DEBUG) {
-                const debugPanel = document.getElementById('debugPanel');
-                const debugLog = document.getElementById('debugLog');
-                
-                // Show the debug panel
-                debugPanel.classList.add('show-debug');
-                
-                // Add timestamp
-                const timestamp = new Date().toLocaleTimeString();
-                
-                // Format message
-                let formattedMessage = `[${timestamp}] `;
-                if (typeof message === 'object') {
-                    formattedMessage += JSON.stringify(message, null, 2);
-                } else {
-                    formattedMessage += message;
-                }
-                
-                // Add to log
-                debugLog.textContent += formattedMessage + '\n';
-                
-                // Auto-scroll
-                debugLog.scrollTop = debugLog.scrollHeight;
-                
-                // Also log to console
-                console.log(message);
-            }
         }
         
         // Function to add a message to the chat
@@ -499,8 +446,6 @@
             
             // Scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            debugLog(`Added ${role} message: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}" with ID ${id} and source ${source}`);
         }
         
         // Function to handle feedback
@@ -524,9 +469,6 @@
             const message = messages.find(m => m.id === messageId);
             if (!message) return;
             
-            // Log the feedback
-            debugLog(`Feedback provided: ${feedbackType} for message ID ${messageId}`);
-            
             // Send the feedback to the server
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             
@@ -545,10 +487,10 @@
             })
             .then(response => response.json())
             .then(data => {
-                debugLog(`Feedback response: ${JSON.stringify(data)}`);
+                // Feedback response successfully sent
             })
             .catch(error => {
-                debugLog(`Error sending feedback: ${error}`);
+                console.error(`Error sending feedback: ${error}`);
             });
         }
         
@@ -569,14 +511,11 @@
                 showTypingIndicator();
                 
                 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                debugLog(`Sending message: "${userMessage}"`);
                 
                 // IMPORTANT: Use consistent format for the API
                 const requestBody = {
                     message: userMessage
                 };
-                
-                debugLog(`Request body: ${JSON.stringify(requestBody)}`);
                 
                 const response = await fetch('/api/chat/', {
                     method: 'POST',
@@ -587,16 +526,12 @@
                     body: JSON.stringify(requestBody)
                 });
                 
-                debugLog(`Response status: ${response.status}`);
-                
                 if (!response.ok) {
                     throw new Error(`API request failed with status ${response.status}`);
                 }
                 
                 const data = await response.json();
                 hideTypingIndicator();
-                
-                debugLog(`Response data: ${JSON.stringify(data)}`);
                 
                 // Handle response based on its structure
                 let botResponse = "";
@@ -613,32 +548,21 @@
                 }
                 
                 if (!data.success && data.error) {
-                    debugLog('Error response received');
                     botResponse = 'Sorry, there was an error: ' + data.error;
                     responseSource = 'prolog';
-                    // Log detailed error info if available
-                    if (data.error_details) {
-                        debugLog(`Error details: ${data.error_details}`);
-                    }
                 } else if (data.message && typeof data.message === 'object' && data.message.content) {
-                    debugLog('Extracting response from message.content');
                     botResponse = data.message.content;
                 } else if (data.message && typeof data.message === 'string') {
-                    debugLog('Extracting response from direct message string');
                     botResponse = data.message;
                 } else if (data.response) {
-                    debugLog('Extracting response from response field');
                     botResponse = data.response;
                 } else if (data.result && data.result.response) {
-                    debugLog('Extracting response from result.response field');
                     botResponse = data.result.response;
                     responseSource = data.result.source || responseSource;
                 } else if (data.error) {
-                    debugLog('Error response received');
                     botResponse = 'Sorry, there was an error: ' + data.error;
                     responseSource = 'prolog';
                 } else {
-                    debugLog('No recognizable response format');
                     botResponse = 'Sorry, I received an unexpected response format. Please try again.';
                     responseSource = 'prolog';
                 }
@@ -646,7 +570,7 @@
                 addMessage('assistant', botResponse, responseSource);
             } catch (error) {
                 hideTypingIndicator();
-                debugLog(`Error: ${error.message}`);
+                console.error(`Error: ${error.message}`);
                 addMessage('assistant', 'Sorry, I encountered an error. Please try again later.', 'prolog');
             }
         }
