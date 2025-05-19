@@ -1,0 +1,18 @@
+# Django and extensions
+django==4.2.7
+django-environ==0.11.2
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+djangorestframework==3.14.0
+psycopg2-binary==2.9.9
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Deployment
+gunicorn==21.2.0
+whitenoise==6.5.0
+
+# Prolog and NLP integration
+pyswip==0.3.2

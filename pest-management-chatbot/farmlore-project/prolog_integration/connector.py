@@ -13,6 +13,17 @@ if 'SWI_HOME_DIR' not in os.environ:
 # Now import Prolog
 from pyswip import Prolog
 from pathlib import Path
+import logging # Added for more detailed logging
+
+# Configure logging for the connector
+connector_logger = logging.getLogger(__name__)
+# Set a default handler if no handlers are configured
+if not connector_logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    connector_logger.addHandler(handler)
+    connector_logger.setLevel(logging.INFO)
 
 class PrologConnector:
     _instance = None
@@ -20,19 +31,43 @@ class PrologConnector:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(PrologConnector, cls).__new__(cls)
-            cls._instance.prolog = Prolog()
-            # Load the knowledge base
-            kb_path_obj = Path(os.path.dirname(__file__)) / 'knowledgebase.pl'
-            prolog_path_atom = kb_path_obj.as_posix() # e.g., 'C:/Users/user/file.pl'
-            
-            query_string = f"consult('{prolog_path_atom}')"
-            print(f"[PrologConnector] Executing consult query: {query_string}")
             try:
-                list(cls._instance.prolog.query(query_string))
+                connector_logger.info("Initializing Prolog instance in PrologConnector...")
+                cls._instance.prolog = Prolog()
+                connector_logger.info("Prolog instance created successfully.")
+                
+                # Load the knowledge base
+                # Log current working directory from within the container for context
+                try:
+                    cwd = os.getcwd()
+                    connector_logger.info(f"[PrologConnector] Current working directory inside container: {cwd}")
+                except Exception as e_cwd:
+                    connector_logger.error(f"[PrologConnector] Error getting CWD: {e_cwd}")
+
+                script_dir = Path(os.path.dirname(__file__))
+                kb_path_obj = script_dir / 'knowledgebase.pl'
+                
+                connector_logger.info(f"[PrologConnector] Resolved script directory: {script_dir}")
+                connector_logger.info(f"[PrologConnector] Attempting to load KB from path object: {kb_path_obj}")
+                connector_logger.info(f"[PrologConnector] Does KB file exist at path object? {kb_path_obj.exists()}")
+                
+                prolog_path_atom = kb_path_obj.as_posix() 
+                
+                query_string = f"consult('{prolog_path_atom}')"
+                connector_logger.info(f"[PrologConnector] Executing consult query: {query_string}")
+                
+                # Perform the consult
+                consult_result = list(cls._instance.prolog.query(query_string))
+                connector_logger.info(f"[PrologConnector] Consult query result: {consult_result}")
+                # Typically, a successful consult returns an empty list or a list with an empty dict for pyswip.
+                # A failure might raise an exception or return specific error structures.
+                # Check if the consult was successful (pyswip often raises exception on failure)
+                connector_logger.info(f"[PrologConnector] Knowledge base '{prolog_path_atom}' loaded (or consult attempted).")
+
             except Exception as e:
-                print(f"[PrologConnector] Error during explicit consult query: {e}")
-                # Optionally, re-raise or handle as appropriate
-                raise
+                connector_logger.error(f"[PrologConnector] CRITICAL ERROR during PrologConnector initialization or KB consult: {e}", exc_info=True)
+                # Optionally, re-raise or handle as appropriate. If Prolog cannot be initialized, the service is unusable.
+                raise # Re-raise the exception so it's clear initialization failed.
         return cls._instance
     
     def query(self, query_string):

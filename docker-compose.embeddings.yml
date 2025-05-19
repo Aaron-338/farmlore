@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  embeddings-classifier:
+    build:
+      context: .
+      dockerfile: Dockerfile.embeddings
+    container_name: embeddings-classifier
+    volumes:
+      - ./:/app
+    command: python embeddings_classifier.py
+    environment:
+      - PYTHONPATH=/app
+
+  embeddings-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.embeddings
+    container_name: embeddings-api
+    volumes:
+      - ./:/app
+    command: python embeddings_classifier_api.py
+    environment:
+      - PYTHONPATH=/app
+    ports:
+      - "5001:5000"
+
+  compare-classifiers:
+    build:
+      context: .
+      dockerfile: Dockerfile.embeddings
+    container_name: compare-classifiers
+    volumes:
+      - ./:/app
+    command: python test_compare_classifiers.py
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - embeddings-classifier 

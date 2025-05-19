@@ -9,8 +9,7 @@ from api.views import (
     search_soil,
     chat_api,  # This is the one we modified
     feedback_api, 
-    DatasetViewSet,
-    TrainedModelViewSet, 
+    TrainedModelViewSet,
     HybridEngineView, 
     EngineStatsView,
     health_check, 
@@ -22,8 +21,7 @@ from api.views import (
 
 # For any viewsets (class-based views), we would register them with a router
 router = DefaultRouter()
-router.register(r'datasets', DatasetViewSet, basename='dataset')
-router.register(r'trained-models', TrainedModelViewSet, basename='trainedmodel')
+router.register(r'trained-models', TrainedModelViewSet, basename='trained-model')
 
 # urlpatterns for function-based views and router-included viewsets
 urlpatterns = [

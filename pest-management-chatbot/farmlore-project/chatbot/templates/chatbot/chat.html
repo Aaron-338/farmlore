@@ -1,6 +1,6 @@
 {% extends 'chatbot/base.html' %}
 
-{% block title %}Chat - FarmLore{% endblock %}
+{% block title %}RAG-Enhanced Chat - FarmLore{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -53,6 +53,10 @@
     .assistant-message .source-llm {
         background-color: #e3f2fd;
         color: #0d6efd;
+    }
+    .assistant-message .source-rag {
+        background-color: #d1e7dd;
+        color: #198754;
     }
     .assistant-message .source-prolog {
         background-color: #f8d7da;
@@ -158,7 +162,16 @@
         background-color: #fff3cd;
         color: #997404;
     }
-    
+    .new-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 0.25rem;
+        margin-left: 5px;
+        background-color: #198754;
+        color: white;
+    }
 </style>
 {% endblock %}
 
@@ -168,16 +181,16 @@
         <div class="card shadow">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0">
-                    <i class="fas fa-seedling me-2"></i> Chat with FarmLore Assistant
+                    <i class="fas fa-seedling me-2"></i> Chat with FarmLore Assistant <span class="new-badge">RAG Enhanced</span>
                 </h5>
             </div>
             <div class="card-body p-0">
                 <div class="chat-container">
                     <div id="messages" class="messages-container">
                         <div class="message assistant-message">
-                            <p class="mb-0">Hello! I'm your FarmLore assistant for agricultural knowledge and soil fertility. How can I help you today?</p>
+                            <p class="mb-0">Hello! I'm your RAG-enhanced FarmLore assistant for agricultural knowledge and pest management. How can I help you today?</p>
                             <div class="message-footer">
-                                <span class="source-indicator source-prolog">Rule-Based</span>
+                                <span class="source-indicator source-rag">RAG-Enhanced</span>
                                 <div class="feedback-buttons" data-message-id="welcome">
                                     <button class="feedback-btn positive" title="Helpful">👍</button>
                                     <button class="feedback-btn negative" title="Not helpful">👎</button>
@@ -209,7 +222,7 @@
         
         <div class="card mt-4 shadow-sm">
             <div class="card-header bg-light">
-                <h5 class="mb-0">Example Questions</h5>
+                <h5 class="mb-0">Example Questions (RAG-Enhanced)</h5>
             </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2">
@@ -217,13 +230,13 @@
                         What pests affect tomato plants?
                     </button>
                     <button class="btn btn-outline-success btn-sm example-question">
-                        My rice plants have yellow leaves, what could it be?
-                    </button>
-                    <button class="btn btn-outline-success btn-sm example-question">
                         How do I control aphids on my cabbage?
                     </button>
                     <button class="btn btn-outline-success btn-sm example-question">
-                        What are natural methods for soil fertilization?
+                        What pests affect cucumber plants?
+                    </button>
+                    <button class="btn btn-outline-success btn-sm example-question">
+                        How to deal with spider mites in my garden?
                     </button>
                 </div>
             </div>
@@ -250,6 +263,10 @@
                     <span class="stats-label">Rule-Based Engine:</span>
                     <span id="prologStatus" class="engine-status active">Active</span>
                 </div>
+                <div class="stats-row">
+                    <span class="stats-label">RAG Enhancement:</span>
+                    <span id="ragStatus" class="engine-status active">Active</span>
+                </div>
                 <hr>
                 <h6>Message Sources</h6>
                 <div class="stats-row">
@@ -258,7 +275,11 @@
                 </div>
                 <div class="stats-row">
                     <span class="stats-label">Rule-Based:</span>
-                    <span id="prologCount" class="stats-value">1</span>
+                    <span id="prologCount" class="stats-value">0</span>
+                </div>
+                <div class="stats-row">
+                    <span class="stats-label">RAG-Enhanced:</span>
+                    <span id="ragCount" class="stats-value">1</span>
                 </div>
                 <div class="stats-row">
                     <span class="stats-label">Total Messages:</span>
@@ -285,24 +306,30 @@
         const engineStatus = document.getElementById('engineStatus');
         const ollamaStatus = document.getElementById('ollamaStatus');
         const prologStatus = document.getElementById('prologStatus');
+        const ragStatus = document.getElementById('ragStatus');
         const llmCount = document.getElementById('llmCount');
         const prologCount = document.getElementById('prologCount');
+        const ragCount = document.getElementById('ragCount');
         const totalCount = document.getElementById('totalCount');
+        
+        // RAG proxy URL - Using nginx-proxied RAG connector URL
+        const RAG_PROXY_URL = "/rag-api/proxy-api";
         
         // Store chat history with message IDs
         const messages = [
             { 
                 id: 'welcome',
                 role: 'assistant', 
-                content: 'Hello! I\'m your FarmLore assistant for agricultural knowledge and soil fertility. How can I help you today?',
-                source: 'prolog'
+                content: 'Hello! I\'m your RAG-enhanced FarmLore assistant for agricultural knowledge and pest management. How can I help you today?',
+                source: 'rag'
             }
         ];
         
         // Message source counters
         let stats = {
             llm: 0,
-            prolog: 1,
+            prolog: 0,
+            rag: 1,
             total: 1,
             ollamaInitialized: false,
             ollamaAvailable: false
@@ -316,17 +343,18 @@
             // Update counters
             llmCount.textContent = stats.llm;
             prologCount.textContent = stats.prolog;
+            ragCount.textContent = stats.rag;
             totalCount.textContent = stats.total;
             
             // Update engine status
             if (stats.ollamaInitialized && stats.ollamaAvailable) {
-                engineStatus.textContent = 'Hybrid Mode';
+                engineStatus.textContent = 'Hybrid Mode with RAG';
                 engineStatus.className = 'engine-status active';
                 ollamaStatus.textContent = 'Active';
                 ollamaStatus.className = 'engine-status active';
             } else if (stats.ollamaInitialized && !stats.ollamaAvailable) {
-                engineStatus.textContent = 'Rule-Based Only';
-                engineStatus.className = 'engine-status inactive';
+                engineStatus.textContent = 'Rule-Based with RAG';
+                engineStatus.className = 'engine-status active';
                 ollamaStatus.textContent = 'Configured But Unavailable';
                 ollamaStatus.className = 'engine-status inactive';
             } else if (!stats.ollamaInitialized) {
@@ -379,6 +407,8 @@
             if (role === 'assistant') {
                 if (source === 'llm') {
                     stats.llm++;
+                } else if (source === 'rag') {
+                    stats.rag++;
                 } else {
                     stats.prolog++;
                 }
@@ -410,6 +440,9 @@
                     if (source === 'llm') {
                         sourceIndicator.classList.add('source-llm');
                         sourceIndicator.textContent = 'AI-Generated';
+                    } else if (source === 'rag') {
+                        sourceIndicator.classList.add('source-rag');
+                        sourceIndicator.textContent = 'RAG-Enhanced';
                     } else {
                         sourceIndicator.classList.add('source-prolog');
                         sourceIndicator.textContent = 'Rule-Based';
@@ -482,7 +515,7 @@
                     message_id: messageId,
                     feedback_type: feedbackType,
                     message_content: message.content,
-                    message_source: message.source || 'unknown'
+                    message_source: message.source || 'rag'
                 })
             })
             .then(response => response.json())
@@ -505,7 +538,7 @@
             typingIndicator.classList.add('d-none');
         }
         
-        // Function to send message to API
+        // Function to send message to API via RAG proxy
         async function sendMessage(userMessage) {
             try {
                 showTypingIndicator();
@@ -517,7 +550,8 @@
                     message: userMessage
                 };
                 
-                const response = await fetch('/api/chat/', {
+                // Use the RAG proxy endpoint instead of direct API
+                const response = await fetch(RAG_PROXY_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -535,10 +569,16 @@
                 
                 // Handle response based on its structure
                 let botResponse = "";
-                let responseSource = data.source || 
-                                    (data.metadata && data.metadata.source) || 
-                                    (data.result && data.result.source) || 
-                                    'prolog';
+                
+                // Determine the source - prefer RAG if enhanced
+                let responseSource = 'prolog';
+                if (data.metadata && data.metadata.rag_enhanced) {
+                    responseSource = 'rag';
+                } else if (data.source === 'llm' || 
+                          (data.metadata && data.metadata.source === 'llm') || 
+                          (data.result && data.result.source === 'llm')) {
+                    responseSource = 'llm';
+                }
                 
                 // Update engine status info if available
                 if (data.metadata && data.metadata.engine_status) {
@@ -558,7 +598,6 @@
                     botResponse = data.response;
                 } else if (data.result && data.result.response) {
                     botResponse = data.result.response;
-                    responseSource = data.result.source || responseSource;
                 } else if (data.error) {
                     botResponse = 'Sorry, there was an error: ' + data.error;
                     responseSource = 'prolog';
@@ -571,7 +610,35 @@
             } catch (error) {
                 hideTypingIndicator();
                 console.error(`Error: ${error.message}`);
-                addMessage('assistant', 'Sorry, I encountered an error. Please try again later.', 'prolog');
+                
+                // Try to fall back to direct API if RAG proxy fails
+                try {
+                    console.log("Falling back to direct API call...");
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    
+                    const response = await fetch('/api/chat/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken,
+                        },
+                        body: JSON.stringify({
+                            message: userMessage
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API request failed with status ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    let botResponse = data.response || "Sorry, I couldn't process your request properly.";
+                    addMessage('assistant', botResponse, 'prolog');
+                    
+                } catch (fallbackError) {
+                    console.error(`Fallback error: ${fallbackError.message}`);
+                    addMessage('assistant', 'Sorry, I encountered an error connecting to the RAG proxy and the direct API. Please check the server status.', 'prolog');
+                }
             }
         }
         
@@ -597,4 +664,4 @@
         });
     });
 </script>
-{% endblock %}
+{% endblock %} 

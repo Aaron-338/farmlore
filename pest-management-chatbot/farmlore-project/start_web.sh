@@ -105,7 +105,7 @@ try:
     if content is not None:
         # Remove null bytes first, as they can interfere with other string ops
         original_len_null = len(content)
-        content = content.replace('\\x00', '') 
+        content = content.replace('\x00', '') 
         if len(content) < original_len_null:
             print(f"[START_WEB_PYTHON_SANITIZE] Removed null bytes. Original length: {original_len_null}, New length: {len(content)}")
 
@@ -198,7 +198,32 @@ echo "[START_WEB] - DJANGO_ALLOWED_HOSTS: $DJANGO_ALLOWED_HOSTS (from docker-com
 echo "[START_WEB] - DEBUG: $DEBUG (from docker-compose)"
 
 # Prepare Gunicorn command
-GUNICORN_CMD="gunicorn farmlore.wsgi:application \
+GUNICORN_CMD="
+# Initialize RAG if enabled
+if [ \"$USE_RAG\" = \"true\" ]; then
+    echo \"======================================\"
+    echo \"Initializing RAG system...\"
+    echo \"======================================\"
+    
+    # Create data directory if it doesn't exist
+    if [ ! -d \"$RAG_PERSIST_DIR\" ]; then
+        echo \"Creating directory: $RAG_PERSIST_DIR\"
+        mkdir -p \"$RAG_PERSIST_DIR\"
+    fi
+    
+    # Run the initialization script
+    python /app/initialize_rag.py
+    
+    # Check exit code
+    if [ \$? -eq 0 ]; then
+        echo \"RAG initialization completed\"
+    else
+        echo \"WARNING: RAG initialization encountered issues, but continuing startup\"
+    fi
+    
+    echo \"======================================\"
+fi
+gunicorn farmlore.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers $GUNICORN_WORKERS \
     --threads $GUNICORN_THREADS \

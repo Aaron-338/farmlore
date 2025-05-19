@@ -363,15 +363,6 @@ def test_endpoint(request):
 
 # Creating minimal class-based views required by urls.py
 
-class DatasetViewSet(ViewSet):
-
-    """Minimal stub for DatasetViewSet, now inheriting from DRF ViewSet"""
-
-    # Routers often expect a 'list' action for the root of the viewset.
-    def list(self, request):
-        return Response({"message": "DatasetViewSet stub - list action"})
-
-
 class TrainedModelViewSet(ViewSet):
 
     """Minimal stub for TrainedModelViewSet, now inheriting from DRF ViewSet"""

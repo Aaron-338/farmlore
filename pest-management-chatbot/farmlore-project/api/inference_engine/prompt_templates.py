@@ -198,6 +198,30 @@ def detect_prompt_type(query: str) -> PromptType:
     """
     query_lower = query.lower()
     
+    # Define comprehensive pest management keywords
+    pest_management_keywords = [
+        # Control keywords
+        "control", "manage", "get rid of", "treat", "pesticide", "spray", "kill",
+        
+        # Pest types
+        "pest", "insect", "bug", "aphid", "beetle", "caterpillar", "worm", 
+        "moth", "fly", "mite", "thrip", "weevil", "nematode", "spider mite",
+        
+        # Natural enemies and predators
+        "predator", "natural enemy", "beneficial", "ladybug", "ladybird",
+        "lacewing", "parasitic wasp", "nematode", "predatory", "biological control",
+        "natural control", "eat aphid", "eat pest", "consume pest", "prey on",
+        "natural predator", "predators for", "predators of",
+        
+        # Prevention and management
+        "prevent", "deter", "repel", "trap", "barrier", "protect plant"
+    ]
+    
+    # Check for pest management keywords FIRST (this is the key fix)
+    if any(keyword in query_lower for keyword in pest_management_keywords):
+        logger.info(f"Classified as PEST_MANAGEMENT due to keywords match: {query}")
+        return PromptType.PEST_MANAGEMENT
+    
     # Pest identification keywords and patterns
     pest_id_keywords = [
         "identify", "what pest", "what insect", "what disease", "what bug", 
@@ -207,20 +231,22 @@ def detect_prompt_type(query: str) -> PromptType:
         "what is this", "what are these", "can you identify", "help identify"
     ]
     
-    if any(term in query_lower for term in pest_id_keywords):
+    if any(keyword in query_lower for keyword in pest_id_keywords):
+        logger.info(f"Classified as PEST_IDENTIFICATION due to keywords match: {query}")
         return PromptType.PEST_IDENTIFICATION
     
-    # Pest management keywords
-    if any(term in query_lower for term in ["control", "manage", "get rid of", "treat", "pesticide"]):
-        return PromptType.PEST_MANAGEMENT
-    
     # Soil analysis keywords
-    if any(term in query_lower for term in ["soil", "fertility", "nutrients", "ph", "drainage"]):
+    soil_keywords = ["soil", "fertility", "nutrients", "ph", "drainage"]
+    if any(keyword in query_lower for keyword in soil_keywords):
+        logger.info(f"Classified as SOIL_ANALYSIS due to keywords match: {query}")
         return PromptType.SOIL_ANALYSIS
     
     # Indigenous knowledge keywords
-    if any(term in query_lower for term in ["traditional", "indigenous", "ancestors", "cultural", "old methods"]):
+    indigenous_keywords = ["traditional", "indigenous", "ancestors", "cultural", "old methods"]
+    if any(keyword in query_lower for keyword in indigenous_keywords):
+        logger.info(f"Classified as INDIGENOUS_KNOWLEDGE due to keywords match: {query}")
         return PromptType.INDIGENOUS_KNOWLEDGE
     
     # Default to general if no specific type is detected
-    return PromptType.GENERAL 
+    logger.info(f"Classified as GENERAL (default): {query}")
+    return PromptType.GENERAL

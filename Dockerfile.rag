@@ -1,0 +1,20 @@
+FROM python:3.9-slim
+
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y curl --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements-rag.txt .
+RUN pip install --no-cache-dir -r requirements-rag.txt
+
+COPY standalone_rag.py .
+COPY rag_web_connector.py .
+
+# Environment variables with defaults
+ENV API_URL=http://web:8000
+ENV PORT=5000
+
+EXPOSE 5000
+
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} --timeout 70 rag_web_connector:app"] 

@@ -1,0 +1,8 @@
+services:
+  web:
+    environment:
+      - USE_RAG=true
+      - RAG_PERSIST_DIR=/app/data/chromadb
+    volumes:
+      - ./data:/app/data
+      - ./aphid_predators.txt:/app/aphid_predators.txt 

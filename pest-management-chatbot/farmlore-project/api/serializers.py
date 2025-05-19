@@ -1,10 +1,5 @@
 from rest_framework import serializers
-from ml.models import Dataset, TrainedModel
-
-class DatasetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Dataset
-        fields = ['id', 'name', 'file_path', 'url', 'last_updated']
+from ml.models import TrainedModel
 
 class TrainedModelSerializer(serializers.ModelSerializer):
     class Meta:

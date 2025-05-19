@@ -1,14 +1,15 @@
 from django.db import models
 
-class Dataset(models.Model):
-    """Model to track datasets"""
-    name = models.CharField(max_length=100)
-    file_path = models.CharField(max_length=255)
-    url = models.URLField()
-    last_updated = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return self.name
+# Remove Dataset model as it's obsolete and unused
+# class Dataset(models.Model):
+#     """Model to track datasets"""
+#     name = models.CharField(max_length=100)
+#     file_path = models.CharField(max_length=255)
+#     url = models.URLField()
+#     last_updated = models.DateTimeField(auto_now=True)
+#     
+#     def __str__(self):
+#         return self.name
 
 class TrainedModel(models.Model):
     """Model to track trained ML models"""

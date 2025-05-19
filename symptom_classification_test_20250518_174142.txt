@@ -1,0 +1,36 @@
+SYMPTOM QUERY CLASSIFICATION TEST RESULTS
+==================================================
+Test run at: 2025-05-18 17:41:42.516222
+
+=== Symptom Queries That Should Be Classified as PEST_IDENTIFICATION ===
+  - My crops are turning purple
+  - Why are my tomato leaves yellow?
+  - My plants are wilting despite watering
+  - What causes black spots on roses?
+  - Why do my plants have curled leaves?
+  - My cucumber plants have powdery leaves
+  - What's wrong with my plant with holes in the leaves?
+  - My tomatoes are developing brown spots
+  - The leaves on my plants are turning yellow and falling off
+  - Why are the tips of my plants dying?
+
+=== Classification Results ===
+  - 'My crops are turning purple' -> PEST_IDENTIFICATION (matched: 'turning purple')
+  - 'Why are my tomato leaves yellow?' -> PEST_IDENTIFICATION (matched: 'yellow')
+  - 'My plants are wilting despite watering' -> PEST_IDENTIFICATION (matched: 'wilt')
+  - 'What causes black spots on roses?' -> PEST_IDENTIFICATION (matched: 'spots')
+  - 'Why do my plants have curled leaves?' -> PEST_IDENTIFICATION (matched: 'curled')
+  - 'My cucumber plants have powdery leaves' -> PEST_IDENTIFICATION (matched: 'powdery')
+  - 'What's wrong with my plant with holes in the leaves?' -> PEST_IDENTIFICATION (matched: 'hole')
+  - 'My tomatoes are developing brown spots' -> PEST_IDENTIFICATION (matched: 'spots')
+  - 'The leaves on my plants are turning yellow and falling off' -> PEST_IDENTIFICATION (matched: 'yellow')
+  - 'Why are the tips of my plants dying?' -> PEST_IDENTIFICATION (matched: 'dying')
+
+=== Testing Edge Cases ===
+
+Edge Case Queries:
+  - 'What soil nutrients cause purple leaves?' -> PEST_IDENTIFICATION (matched: 'purple leaves')
+  - 'Do aphids cause yellowing of leaves?' -> PEST_MANAGEMENT (matched: 'aphid')
+  - 'My plants have purple leaves, is this phosphorus deficiency?' -> PEST_IDENTIFICATION (matched: 'purple leaves')
+  - 'What pests create holes in leaves?' -> PEST_MANAGEMENT (matched: 'pest')
+  - 'Can soil pH cause leaf discoloration?' -> SOIL_ANALYSIS (matched: 'soil')

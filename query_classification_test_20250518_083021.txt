@@ -1,0 +1,48 @@
+QUERY CLASSIFICATION TEST RESULTS
+========================================
+Test run at: 2025-05-18 08:30:21.378093
+
+=== Classification Results ===
+Expected classifications:
+Pest Management Queries:
+  - How do I get rid of aphids on my roses?
+  - What are natural predators for aphids?
+  - How to control tomato hornworms?
+  - How do I deal with beetles on my potato plants?
+  - What insects typically attack pea plants?
+
+Soil Analysis Queries:
+  - What is the optimal soil pH for growing tomatoes?
+  - How should I test soil fertility?
+  - What nutrients are missing in my garden soil?
+  - How to improve clay soil?
+  - What is the best soil composition for vegetable gardens?
+
+=== Simple Classifier Results ===
+Pest Management Queries:
+  - 'How do I get rid of aphids on my roses?' -> PEST_MANAGEMENT (matched: 'aphid')
+  - 'What are natural predators for aphids?' -> PEST_MANAGEMENT (matched: 'aphid')
+  - 'How to control tomato hornworms?' -> PEST_MANAGEMENT (matched: 'worm')
+  - 'How do I deal with beetles on my potato plants?' -> PEST_MANAGEMENT (matched: 'beetle')
+  - 'What insects typically attack pea plants?' -> PEST_MANAGEMENT (matched: 'insect')
+
+Soil Analysis Queries:
+  - 'What is the optimal soil pH for growing tomatoes?' -> SOIL_ANALYSIS (matched: 'soil')
+  - 'How should I test soil fertility?' -> SOIL_ANALYSIS (matched: 'soil')
+  - 'What nutrients are missing in my garden soil?' -> SOIL_ANALYSIS (matched: 'soil')
+  - 'How to improve clay soil?' -> SOIL_ANALYSIS (matched: 'soil')
+  - 'What is the best soil composition for vegetable gardens?' -> SOIL_ANALYSIS (matched: 'soil')
+
+=== Testing Priority (Mixed Queries) ===
+  - 'What's the best soil for controlling aphids?' -> PEST_MANAGEMENT (matched: 'aphid')
+    Expected: PEST_MANAGEMENT (our fix prioritizes pest keywords)
+
+=== More Mixed Query Tests ===
+  - 'Should I use soil amendments to treat aphid infestations?' -> PEST_MANAGEMENT (matched: 'aphid')
+    With our fix, pest keywords are prioritized over soil keywords
+  - 'Does soil pH affect beetle populations?' -> PEST_MANAGEMENT (matched: 'beetle')
+    With our fix, pest keywords are prioritized over soil keywords
+  - 'Are there soil nutrients that repel insects?' -> PEST_MANAGEMENT (matched: 'insect')
+    With our fix, pest keywords are prioritized over soil keywords
+  - 'What soil composition helps plants resist pests?' -> PEST_MANAGEMENT (matched: 'pest')
+    With our fix, pest keywords are prioritized over soil keywords

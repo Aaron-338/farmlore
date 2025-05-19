@@ -293,6 +293,13 @@ class HybridEngine:
             return self._process_indigenous_knowledge(params, attempt_ollama_call=attempt_ollama_call)
         elif query_type == "general_query":
             return self._process_general_query(params, attempt_ollama_call=attempt_ollama_call)
+        elif query_type == "soil_analysis":
+            # Handle soil_analysis with the pest_management processor when it contains pest-related terms
+            user_query = params.get("query", "").lower()
+            if any(term in user_query for term in ["aphid", "pest", "insect", "predator", "bug"]):
+                logging.info("Soil analysis query contains pest terms, redirecting to pest management.")
+                return self._process_control_methods(params, attempt_ollama_call=attempt_ollama_call)
+            return self._process_soil_analysis(params, attempt_ollama_call=attempt_ollama_call)
         else:
             return {"error": "Unknown query type"}
     
@@ -833,3 +840,38 @@ class HybridEngine:
                 }
             ]
         }
+
+    def _process_soil_analysis(self, params: Dict, attempt_ollama_call: bool) -> Dict[str, Any]:
+        """Process soil analysis queries using Ollama."""
+        user_query = params.get("query", "")
+        soil_type = params.get("soil_type")
+        crop_name = params.get("crop")
+        
+        logging.info(f"Processing soil analysis query: '{user_query}'")
+        
+        if attempt_ollama_call and self.ollama_handler:
+            logging.info("[SOIL_ANALYSIS] Using Ollama for response generation.")
+            
+            # Use the general prompt template for soil queries
+            prompt_content = format_prompt(
+                PromptType.SOIL_ANALYSIS, 
+                soil_description=soil_type or "not specified",
+                location="Lesotho",
+                current_crops=crop_name or "not specified",
+                problems=user_query
+            )
+            
+            # Use the general model for soil analysis
+            llm_response = self.ollama_handler.generate_response(
+                prompt=prompt_content["user_prompt"],
+                system_prompt=prompt_content["system_prompt"]
+            )
+
+            if llm_response and llm_response.strip():
+                return {"response": llm_response, "source": "ollama"}
+            else:
+                logging.warning("[SOIL_ANALYSIS] Ollama returned empty response.")
+                
+        # Fallback to general query if Ollama is not available or failed
+        logging.info("[SOIL_ANALYSIS] Using general query processor as fallback.")
+        return self._process_general_query(params, attempt_ollama_call=attempt_ollama_call)

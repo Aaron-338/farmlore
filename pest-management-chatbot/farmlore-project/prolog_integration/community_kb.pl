@@ -1,3 +1,7 @@
+:- discontiguous verified_indigenous_practice/1.
+:- discontiguous indigenous_practices_by_type/2.
+:- discontiguous all_practices_for_pest/2.
+
 % ========================
 % COMMUNITY KNOWLEDGE BASE
 % ========================

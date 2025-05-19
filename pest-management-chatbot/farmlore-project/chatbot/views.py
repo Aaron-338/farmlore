@@ -18,11 +18,135 @@ def home(request):
 
 def chat(request):
     """Chat interface view"""
-    return render(request, 'chatbot/chat.html')
+    return render(request, 'chatbot/rag_chat.html')
 
 def about(request):
     """About page view"""
     return render(request, 'chatbot/about.html')
+
+def rag_chat(request):
+    """RAG-enhanced chat interface view"""
+    return render(request, 'chatbot/rag_chat.html')
+
+# Add new endpoints for the RAG interface
+def system_status(request):
+    """API endpoint for checking system status"""
+    if request.method == 'GET':
+        try:
+            # Check if Ollama is initialized and available
+            is_ready, status_message = hybrid_engine.is_initialization_complete()
+            ollama_available = is_ready and "success" in status_message.lower()
+            
+            # Get stats from the hybrid engine
+            stats = hybrid_engine.get_stats()
+            
+            # Get feedback stats from the database or cache
+            # For now, just return placeholder values
+            total_queries = stats.get('total_queries', 0)
+            positive_feedback = stats.get('positive_feedback', 0)
+            negative_feedback = stats.get('negative_feedback', 0)
+            
+            return JsonResponse({
+                'engine_available': True,
+                'ollama_available': ollama_available,
+                'prolog_available': True,  # Assuming Prolog is always available
+                'rag_available': True,  # Assuming RAG is enabled
+                'total_queries': total_queries,
+                'positive_feedback': positive_feedback,
+                'negative_feedback': negative_feedback
+            })
+        except Exception as e:
+            logger.error(f"Error in system_status: {str(e)}")
+            return JsonResponse({
+                'engine_available': False,
+                'ollama_available': False,
+                'prolog_available': False,
+                'rag_available': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'error': 'Invalid request method'
+    }, status=405)
+
+def rag_api(request):
+    """API endpoint for RAG-enhanced chat"""
+    if request.method == 'POST':
+        try:
+            query = request.POST.get('query', '')
+            
+            if not query:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No query provided'
+                })
+            
+            # Classify query type using existing function
+            query_type = detect_query_type(query)
+            
+            # Extract entities if needed
+            params = extract_entities(query)
+            params['query'] = query
+            
+            # Process the query using the hybrid engine
+            result = hybrid_engine.query(query_type, params)
+            
+            # Get classification confidence (placeholder for now)
+            confidence = 0.85
+            
+            # Map source from hybrid_engine to our frontend terminology
+            source_mapping = {
+                'ollama': 'llm',
+                'prolog': 'prolog',
+                'hybrid': 'rag',  # Use 'rag' for hybrid results
+                'cache': 'rag',   # If from cache, we'll show as RAG
+                'mock': 'prolog'  # If mock data, it's rule-based
+            }
+            source = source_mapping.get(result.get('source', ''), 'rag')  # Default to 'rag' if not specified
+            
+            return JsonResponse({
+                'success': True,
+                'message': result.get('response', 'Sorry, I could not generate a response.'),
+                'source': source,
+                'classification': query_type,
+                'confidence': confidence
+            })
+        except Exception as e:
+            logger.error(f"Error in rag_api: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'message': f'Error processing request: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'This endpoint only accepts POST requests.'
+    }, status=405)
+
+def submit_feedback(request):
+    """API endpoint for submitting feedback on chat responses"""
+    if request.method == 'POST':
+        try:
+            message_id = request.POST.get('message_id', '')
+            is_positive = request.POST.get('is_positive') == 'true'
+            
+            # In a real implementation, you would store this feedback in a database
+            logger.info(f"Received feedback for message {message_id}: {'positive' if is_positive else 'negative'}")
+            
+            return JsonResponse({
+                'success': True
+            })
+        except Exception as e:
+            logger.error(f"Error in submit_feedback: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=405)
 
 def detect_query_type(query):
     """
